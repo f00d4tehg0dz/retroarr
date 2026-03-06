@@ -1,0 +1,32 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and tag Docker image
+        run: |
+          docker build . \
+            --file docker/Dockerfile \
+            --tag f00d4tehg0dz/retroarr:latest \
+            --tag f00d4tehg0dz/retroarr:$(date +%s)
+
+      - name: Push Docker image
+        if: github.event_name == 'push'
+        run: docker push f00d4tehg0dz/retroarr --all-tags
