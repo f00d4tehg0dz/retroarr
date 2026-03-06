@@ -1,7 +1,5 @@
 'use strict';
 
-// The Virtual Clock is the heart of the "live TV" illusion.
-//
 // For any channel at any point in time it answers:
 //   "Which video is playing right now, and how many seconds in?"
 //
