@@ -16,6 +16,8 @@ services:
       - retroarr-db:/app/server/db
 
     environment:
+      # ── Required ────────────────────────────────────────────────
+      - REMOTE_API_URL=https://retroarr-api.f00d.me
       # ── Optional ────────────────────────────────────────────────
       - DEVICE_NAME=${DEVICE_NAME:-RetroArr}
       - STREAM_QUALITY=${STREAM_QUALITY:-720p}
