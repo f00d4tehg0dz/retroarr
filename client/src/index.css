@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-m3-bg text-m3-text font-sans;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar        { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track  { @apply bg-m3-surface; }
+  ::-webkit-scrollbar-thumb  { @apply bg-m3-muted rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-m3-textSecondary; }
+
+  ::selection {
+    background: #A8C7FA;
+    color: #062E6F;
+  }
+}
+
+@layer components {
+  /* ── Cards ─────────────────────────────────── */
+  .card {
+    @apply bg-m3-surface border border-m3-border p-4 rounded-m3;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.24);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .card:hover {
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3), 0 3px 6px rgba(0,0,0,0.22);
+    transform: translateY(-1px);
+  }
+
+  /* ── Buttons ────────────────────────────────── */
+  .btn-primary {
+    @apply bg-m3-primary text-m3-onPrimary border border-m3-primary
+           px-5 py-2.5 text-sm font-semibold tracking-wide rounded-m3-sm;
+    transition: box-shadow 0.2s, transform 0.2s, background-color 0.2s;
+  }
+  .btn-primary:hover {
+    @apply bg-m3-primary/90;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  .btn-secondary {
+    @apply bg-m3-surfaceContainer text-m3-text border border-m3-border
+           px-5 py-2.5 text-sm font-semibold tracking-wide rounded-m3-sm;
+    transition: box-shadow 0.2s, transform 0.2s, background-color 0.2s;
+  }
+  .btn-secondary:hover {
+    @apply bg-m3-surfaceHigh border-m3-primary/40;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transform: translateY(-1px);
+  }
+  .btn-secondary:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  .btn-danger {
+    @apply bg-m3-errorContainer text-m3-error border border-m3-error/30
+           px-5 py-2.5 text-sm font-semibold tracking-wide rounded-m3-sm;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .btn-danger:hover {
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    transform: translateY(-1px);
+  }
+
+  /* ── Inputs ─────────────────────────────────── */
+  .input {
+    @apply bg-m3-bg border border-m3-border text-m3-text
+           px-3 py-2.5 text-sm w-full rounded-m3-sm;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input:focus {
+    border-color: #A8C7FA;
+    box-shadow: 0 0 0 2px rgba(168,199,250,0.2);
+  }
+
+  .label {
+    @apply block text-m3-muted text-xs tracking-wide mb-1.5 font-medium;
+  }
+
+  /* ── Badges ─────────────────────────────────── */
+  .badge-online {
+    @apply inline-flex items-center gap-1.5 text-xs font-medium tracking-wide
+           text-m3-success border border-m3-success/40 px-2.5 py-0.5 rounded-full;
+  }
+  .badge-offline {
+    @apply inline-flex items-center gap-1.5 text-xs font-medium tracking-wide
+           text-m3-muted border border-m3-muted/40 px-2.5 py-0.5 rounded-full;
+  }
+  .badge-error {
+    @apply inline-flex items-center gap-1.5 text-xs font-medium tracking-wide
+           text-m3-error border border-m3-error/40 px-2.5 py-0.5 rounded-full;
+  }
+}

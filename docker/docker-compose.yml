@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  retroarr:
+    image: f00d4tehg0dz/retroarr:latest
+    container_name: retroarr
+    restart: unless-stopped
+    # Network Mode set to host for Linux, ports can be commented out
+    network_mode: host
+    # Comment network_mode and uncomment ports for non-Linux platforms like Windows and MacOS
+    ports:
+      - "8888:8888"
+      - "1900:1900/udp"
+
+    volumes:
+      # Persist local database (channel settings, config, reports)
+      - retroarr-db:/app/server/db
+      # Mount your commercial video files here
+      - retroarr-commercials:/app/server/data/commercials
+
+    environment:
+      # ── Required ────────────────────────────────────────────────
+      - REMOTE_API_URL=${REMOTE_API_URL}
+      # ── Optional ────────────────────────────────────────────────
+      - DEVICE_NAME=${DEVICE_NAME:-RetroArr}
+      - STREAM_QUALITY=${STREAM_QUALITY:-720p}
+      - TUNER_COUNT=${TUNER_COUNT:-4}
+      - TZ=${TZ:-America/New_York}
+      - PORT=8888
+      # Point at Docker volume mount paths
+      - DB_PATH=/app/server/db/db.json
+      - COMMERCIALS_DIR=/app/server/data/commercials
+
+volumes:
+  retroarr-db:
+    driver: local
+  retroarr-commercials:
+    driver: local

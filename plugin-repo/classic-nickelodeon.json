@@ -1,0 +1,10 @@
+{
+  "name": "Classic Nickelodeon",
+  "channelNumber": 601,
+  "yamlFile": "plugin-repo/classic-nickelodeon.yaml",
+  "enabled": true,
+  "settings": {
+    "shuffle": true,
+    "includeCommercials": true
+  }
+}

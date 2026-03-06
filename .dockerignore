@@ -1,0 +1,29 @@
+node_modules
+.git
+.gitignore
+*.md
+.env
+.env.*
+
+# Client build artifacts (rebuilt in Docker)
+client/node_modules
+client/dist
+server/public
+
+# Server local DB (persisted via Docker volume)
+server/db/db.json
+
+# API server
+api-server/node_modules
+api-server/.env
+
+# IDE / OS
+.vscode
+.idea
+*.swp
+*.swo
+Thumbs.db
+.DS_Store
+
+# Scripts (not needed at runtime)
+scripts/

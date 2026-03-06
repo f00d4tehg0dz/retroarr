@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "description": "RetroArr Community Plugin Repository",
+  "plugins": [
+    {
+      "id": "classic-nickelodeon",
+      "name": "Classic Nickelodeon",
+      "description": "90s Nickelodeon shows — Rugrats, Hey Arnold, Doug, and more.",
+      "author": "retroarr",
+      "channelNumber": 601,
+      "yamlFile": "classic-nickelodeon.yaml",
+      "configFile": "classic-nickelodeon.json",
+      "tags": ["cartoons", "90s", "kids", "nickelodeon"],
+      "icon": "📺"
+    },
+    {
+      "id": "saturday-morning",
+      "name": "Saturday Morning Cartoons",
+      "description": "The Saturday morning cartoon block — Looney Tunes, Scooby-Doo, Smurfs, and more.",
+      "author": "retroarr",
+      "channelNumber": 603,
+      "yamlFile": "saturday-morning.yaml",
+      "configFile": "saturday-morning.json",
+      "tags": ["cartoons", "80s", "70s", "kids", "classic"],
+      "icon": "🥣"
+    }
+  ]
+}
