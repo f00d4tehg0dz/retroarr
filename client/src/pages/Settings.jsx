@@ -78,7 +78,7 @@ export default function Settings() {
             onChange={(e) => setForm((f) => ({ ...f, remoteApiUrl: e.target.value }))}
           />
           <p className="text-xs text-m3-muted mt-1.5">
-            Your VPS MongoDB API endpoint for video metadata.
+            Endpoint for video metadata.
           </p>
         </div>
 
