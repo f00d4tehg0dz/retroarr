@@ -14,12 +14,8 @@ services:
     volumes:
       # Persist local database (channel settings, config, reports)
       - retroarr-db:/app/server/db
-      # Mount your commercial video files here
-      - retroarr-commercials:/app/server/data/commercials
 
     environment:
-      # ── Required ────────────────────────────────────────────────
-      - REMOTE_API_URL=${REMOTE_API_URL}
       # ── Optional ────────────────────────────────────────────────
       - DEVICE_NAME=${DEVICE_NAME:-RetroArr}
       - STREAM_QUALITY=${STREAM_QUALITY:-720p}
@@ -28,10 +24,7 @@ services:
       - PORT=8888
       # Point at Docker volume mount paths
       - DB_PATH=/app/server/db/db.json
-      - COMMERCIALS_DIR=/app/server/data/commercials
 
 volumes:
   retroarr-db:
-    driver: local
-  retroarr-commercials:
     driver: local

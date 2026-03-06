@@ -60,10 +60,10 @@ COPY server/ ./
 COPY --from=client-builder /app/server/public ./public
 
 # Create volume mount points
-RUN mkdir -p /app/server/db /app/server/data/commercials
+RUN mkdir -p /app/server/db
 
 # Persist data across container restarts
-VOLUME ["/app/server/db", "/app/server/data/commercials"]
+VOLUME ["/app/server/db"]
 
 # HTTP port (HDHomeRun convention)
 EXPOSE 8888
