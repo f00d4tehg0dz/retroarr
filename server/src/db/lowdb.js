@@ -1,6 +1,5 @@
 'use strict';
 
-// LowDB v3 is the last CommonJS-compatible version.
 // Provides a simple JSON file database for user configuration and
 // cached video data. All runtime reads/writes go through this module.
 
