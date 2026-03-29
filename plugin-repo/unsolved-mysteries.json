@@ -1,6 +1,6 @@
 {
   "name": "Unsolved Mysteries",
-  "channelNumber": 605,
+  "channelNumber": 96,
   "yamlFile": "plugin-repo/unsolved-mysteries.yaml",
   "enabled": true,
   "settings": {

@@ -1,9 +1,10 @@
 'use strict';
 
 // 7 Decades × 13 Categories = 91 unique linear TV channels
-// Channel numbering: (decadeIndex + 1) * 100 + (categoryIndex + 1)
-//   60s = 100s, 70s = 200s, 80s = 300s, 90s = 400s, 00s = 500s, 10s = 600s, 20s = 700s
-//   Example: 80s Cartoons = 303, 90s Commercials = 405, 20s Shows = 701
+// Channel numbering: decadeIndex * 13 + categoryIndex + 1  (channels 1–91)
+//   60s = 1–13, 70s = 14–26, 80s = 27–39, 90s = 40–52, 00s = 53–65, 10s = 66–78, 20s = 79–91
+//   Example: 80s Cartoons = 29, 90s Commercials = 44, 20s Shows = 79
+// Plugin channels start at 92+
 
 const DECADES = ['60s', '70s', '80s', '90s', '00s', '10s', '20s'];
 
@@ -35,7 +36,7 @@ function buildChannelGrid() {
         id: `ch-${slugify(decade)}-${slugify(category)}`,
         decade,
         category,
-        channelNumber: (di + 1) * 100 + (ci + 1),
+        channelNumber: di * 13 + ci + 1,
         name: `${decade} ${category}`,
         enabled: true,
         settings: {

@@ -1,6 +1,6 @@
 {
   "name": "Classic Nickelodeon",
-  "channelNumber": 601,
+  "channelNumber": 92,
   "yamlFile": "plugin-repo/classic-nickelodeon.yaml",
   "enabled": true,
   "settings": {
