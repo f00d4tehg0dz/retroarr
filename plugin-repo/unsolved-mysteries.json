@@ -1,0 +1,10 @@
+{
+  "name": "Unsolved Mysteries",
+  "channelNumber": 605,
+  "yamlFile": "plugin-repo/unsolved-mysteries.yaml",
+  "enabled": true,
+  "settings": {
+    "shuffle": true,
+    "includeCommercials": false
+  }
+}

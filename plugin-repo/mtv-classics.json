@@ -1,0 +1,10 @@
+{
+  "name": "MTV Classics",
+  "channelNumber": 602,
+  "yamlFile": "plugin-repo/mtv-classics.yaml",
+  "enabled": true,
+  "settings": {
+    "shuffle": true,
+    "includeCommercials": false
+  }
+}
