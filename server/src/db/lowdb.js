@@ -52,9 +52,9 @@ async function initDb() {
     try {
       const apiPlugins = await fetchPluginChannels();
       remotePlugins = apiPlugins
-        .filter((p) => !localPlugins.some((lp) => lp.id === `plugin-${p.pluginId}`))
+        .filter((p) => !localPlugins.some((lp) => lp.id === `ch-plugin-${p.pluginId}`))
         .map((p) => ({
-          id: `plugin-${p.pluginId}`,
+          id: `ch-plugin-${p.pluginId}`,
           name: p.name,
           channelNumber: p.channelNumber,
           isPlugin: true,

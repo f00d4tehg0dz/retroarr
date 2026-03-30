@@ -225,6 +225,35 @@ router.post('/install', async (req, res) => {
 
     await db.write();
 
+    // Immediately sync videos for the newly installed plugin
+    const newChannel = db.data.channels.find(
+      (ch) => ch.isPlugin && ch.name === pluginMeta.name
+    );
+    if (newChannel) {
+      try {
+        const pluginId = newChannel.id.replace(/^ch-plugin-/, '');
+        const remoteClient = require('../api/remoteClient');
+        const videos = await remoteClient.fetchPluginVideos(pluginId);
+        if (videos && videos.length > 0) {
+          newChannel.cachedVideos = videos.map((v) => ({
+            id: v.id,
+            title: v.title || 'Untitled',
+            description: v.description || '',
+            duration: parseInt(v.duration, 10) || 0,
+            thumbnailUrl: v.thumbnailUrl || '',
+            lastVerified: Date.now(),
+            isDead: false,
+          }));
+          newChannel.lastVideoSync = new Date().toISOString();
+          await db.write();
+          console.log(`[PluginRepo] Synced ${videos.length} videos for "${pluginMeta.name}" from API`);
+        }
+      } catch (err) {
+        console.warn(`[PluginRepo] Could not sync videos from API for "${pluginMeta.name}": ${err.message}`);
+        // Videos will be synced on next daily sync or manual sync
+      }
+    }
+
     console.log(`[PluginRepo] Installed "${pluginMeta.name}" (CH ${pluginMeta.channelNumber})`);
     res.json({
       success: true,

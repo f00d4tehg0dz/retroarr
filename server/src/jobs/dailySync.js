@@ -141,6 +141,46 @@ async function runDailySync() {
   for (const channel of db.data.channels) {
     if (!channel.enabled) continue;
 
+    // Standalone channels (e.g., Classic Nickelodeon, Saturday Morning, Unsolved Mysteries)
+    // These have dedicated IDs and fetch from the plugin videos API
+    const STANDALONE_IDS = {
+      'ch-classic-nickelodeon': 'classic-nickelodeon',
+      'ch-saturday-morning': 'saturday-morning',
+      'ch-unsolved-mysteries': 'unsolved-mysteries',
+    };
+
+    if (STANDALONE_IDS[channel.id]) {
+      try {
+        const pluginId = STANDALONE_IDS[channel.id];
+        const videos = await remoteClient.fetchPluginVideos(pluginId);
+        if (videos && videos.length > 0) {
+          const localDeadIds = new Set(
+            (channel.cachedVideos || []).filter((v) => v.isDead).map((v) => v.id)
+          );
+          channel.cachedVideos = videos
+            .filter((v) => !localDeadIds.has(v.id))
+            .map((v) => ({
+              id: v.id,
+              title: v.title || 'Untitled',
+              description: v.description || '',
+              duration: parseInt(v.duration, 10) || 0,
+              thumbnailUrl: v.thumbnailUrl || '',
+              lastVerified: Date.now(),
+              isDead: false,
+            }));
+          channel.lastVideoSync = new Date().toISOString();
+          console.log(`[Sync] Standalone "${channel.name}": ${channel.cachedVideos.length} videos from API`);
+          syncedCount++;
+        } else {
+          console.warn(`[Sync] Standalone "${channel.name}": no videos from API`);
+        }
+      } catch (err) {
+        console.error(`[Sync] Standalone "${channel.name}" failed: ${err.message}`);
+        errorCount++;
+      }
+      continue;
+    }
+
     // Plugin channels: try remote API first, fall back to yt-dlp
     if (channel.isPlugin) {
       try {

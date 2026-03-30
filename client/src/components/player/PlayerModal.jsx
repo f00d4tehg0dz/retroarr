@@ -63,8 +63,8 @@ export default function PlayerModal() {
 
         {/* Footer */}
         <div className="bg-m3-surface border-t border-m3-borderSubtle px-4 py-2 flex items-center justify-between shrink-0">
-          <span className="text-m3-muted text-xs font-mono">
-            /stream/{channel.id}
+          <span className="text-m3-muted text-xs">
+            Native YouTube Preview
           </span>
           <span className="text-m3-muted text-xs">ESC to close</span>
         </div>

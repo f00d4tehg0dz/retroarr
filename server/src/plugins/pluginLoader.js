@@ -75,8 +75,8 @@ function loadPlugins() {
       console.warn(`[Plugin] Skipping ${file}: missing or invalid "channelNumber"`);
       continue;
     }
-    if (config.channelNumber < 92) {
-      console.warn(`[Plugin] Skipping ${file}: channelNumber must be 92+ (got ${config.channelNumber}). Channels 1-91 are reserved for the grid.`);
+    if (config.channelNumber < 95) {
+      console.warn(`[Plugin] Skipping ${file}: channelNumber must be 95+ (got ${config.channelNumber}). Channels 1-94 are reserved.`);
       continue;
     }
     if (usedNumbers.has(config.channelNumber)) {
