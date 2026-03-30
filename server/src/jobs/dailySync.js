@@ -144,25 +144,32 @@ async function runDailySync() {
     // Plugin channels: try remote API first, fall back to yt-dlp
     if (channel.isPlugin) {
       try {
-        // Extract pluginId from channel id (e.g., "plugin-classic-nickelodeon" → "classic-nickelodeon")
-        const pluginId = channel.id.replace(/^plugin-/, '');
+        // Extract pluginId from channel id (e.g., "ch-plugin-classic-nickelodeon" → "classic-nickelodeon")
+        const pluginId = channel.id.replace(/^ch-plugin-/, '');
         let videos = null;
 
         // Try remote API first
         try {
           videos = await remoteClient.fetchPluginVideos(pluginId);
           if (videos && videos.length > 0) {
-            channel.cachedVideos = videos.map((v) => ({
-              id: v.id,
-              title: v.title || 'Untitled',
-              description: v.description || '',
-              duration: parseInt(v.duration, 10) || 0,
-              thumbnailUrl: v.thumbnailUrl || '',
-              lastVerified: Date.now(),
-              isDead: false,
-            }));
+            // Preserve locally-marked dead videos so they don't get revived
+            const localDeadIds = new Set(
+              (channel.cachedVideos || []).filter((v) => v.isDead).map((v) => v.id)
+            );
+
+            channel.cachedVideos = videos
+              .filter((v) => !localDeadIds.has(v.id))
+              .map((v) => ({
+                id: v.id,
+                title: v.title || 'Untitled',
+                description: v.description || '',
+                duration: parseInt(v.duration, 10) || 0,
+                thumbnailUrl: v.thumbnailUrl || '',
+                lastVerified: Date.now(),
+                isDead: false,
+              }));
             channel.lastVideoSync = new Date().toISOString();
-            console.log(`[Sync] Plugin "${channel.name}": ${videos.length} videos from API`);
+            console.log(`[Sync] Plugin "${channel.name}": ${channel.cachedVideos.length} videos from API`);
             pluginSyncedCount++;
             continue;
           }
