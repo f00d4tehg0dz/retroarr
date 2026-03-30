@@ -21,7 +21,7 @@ const REPO_DIR = path.resolve(__dirname, '../../../plugin-repo');
 // The GitHub raw URL base for fetching plugin files remotely.
 // Falls back to reading from the local plugin-repo/ directory if this is
 // not configured (self-hosted / development mode).
-const GITHUB_REPO_URL = process.env.PLUGIN_REPO_URL || '';
+const GITHUB_REPO_URL = process.env.PLUGIN_REPO_URL || 'https://raw.githubusercontent.com/f00d4tehg0dz/retroarr/main/plugin-repo';
 
 // --- Helpers ---
 
