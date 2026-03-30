@@ -49,4 +49,26 @@ async function pingRemoteApi() {
   }
 }
 
-module.exports = { fetchChannelVideos, fetchPlaylistVideos, pingRemoteApi };
+// Fetch plugin channels from the remote API.
+async function fetchPluginChannels() {
+  if (!config.remoteApiUrl) return [];
+  try {
+    const client = createClient();
+    const response = await client.get('/plugins');
+    return response.data;
+  } catch {
+    return [];
+  }
+}
+
+// Fetch videos for a specific plugin channel from the remote API.
+async function fetchPluginVideos(pluginId) {
+  if (!config.remoteApiUrl) {
+    throw new Error('REMOTE_API_URL is not configured');
+  }
+  const client = createClient();
+  const response = await client.get(`/plugins/${pluginId}/videos`);
+  return response.data;
+}
+
+module.exports = { fetchChannelVideos, fetchPlaylistVideos, pingRemoteApi, fetchPluginChannels, fetchPluginVideos };

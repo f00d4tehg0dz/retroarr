@@ -11,6 +11,7 @@ const config = require('../config');
 const { getDefaultSchema } = require('./schema');
 const { buildChannelGrid } = require('../channels/channelGrid');
 const { loadPlugins } = require('../plugins/pluginLoader');
+const { fetchPluginChannels } = require('../api/remoteClient');
 
 let db = null;
 
@@ -44,7 +45,30 @@ async function initDb() {
   // preserve existing data (cachedVideos, settings, enabled) for channels that stay.
   if (db.data && db.data.channels) {
     const expectedGrid = buildChannelGrid();
-    const pluginChannels = loadPlugins();
+    const localPlugins = loadPlugins();
+
+    // Also fetch plugin channels from the remote API (non-blocking)
+    let remotePlugins = [];
+    try {
+      const apiPlugins = await fetchPluginChannels();
+      remotePlugins = apiPlugins
+        .filter((p) => !localPlugins.some((lp) => lp.id === `plugin-${p.pluginId}`))
+        .map((p) => ({
+          id: `plugin-${p.pluginId}`,
+          name: p.name,
+          channelNumber: p.channelNumber,
+          isPlugin: true,
+          enabled: true,
+          settings: p.settings || { shuffle: true, includeCommercials: false },
+          cachedVideos: [],
+          lastVideoSync: null,
+          pluginConfig: { videoSources: [] },
+        }));
+    } catch {
+      // API not available — continue with local plugins only
+    }
+
+    const pluginChannels = [...localPlugins, ...remotePlugins];
     const allExpected = [...expectedGrid, ...pluginChannels];
     const expectedIds = new Set(allExpected.map((c) => c.id));
     const existingMap = new Map(db.data.channels.map((c) => [c.id, c]));

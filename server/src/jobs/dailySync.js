@@ -141,11 +141,38 @@ async function runDailySync() {
   for (const channel of db.data.channels) {
     if (!channel.enabled) continue;
 
-    // Plugin channels: sync via yt-dlp directly
+    // Plugin channels: try remote API first, fall back to yt-dlp
     if (channel.isPlugin) {
       try {
+        // Extract pluginId from channel id (e.g., "plugin-classic-nickelodeon" → "classic-nickelodeon")
+        const pluginId = channel.id.replace(/^plugin-/, '');
+        let videos = null;
+
+        // Try remote API first
+        try {
+          videos = await remoteClient.fetchPluginVideos(pluginId);
+          if (videos && videos.length > 0) {
+            channel.cachedVideos = videos.map((v) => ({
+              id: v.id,
+              title: v.title || 'Untitled',
+              description: v.description || '',
+              duration: parseInt(v.duration, 10) || 0,
+              thumbnailUrl: v.thumbnailUrl || '',
+              lastVerified: Date.now(),
+              isDead: false,
+            }));
+            channel.lastVideoSync = new Date().toISOString();
+            console.log(`[Sync] Plugin "${channel.name}": ${videos.length} videos from API`);
+            pluginSyncedCount++;
+            continue;
+          }
+        } catch {
+          // API unavailable — fall back to yt-dlp
+        }
+
+        // Fallback: sync via yt-dlp directly
         const count = await syncPluginChannel(channel);
-        console.log(`[Sync] Plugin "${channel.name}": ${count} videos cached`);
+        console.log(`[Sync] Plugin "${channel.name}": ${count} videos via yt-dlp (API fallback)`);
         pluginSyncedCount++;
       } catch (err) {
         console.error(`[Sync] Plugin "${channel.name}" failed: ${err.message}`);
