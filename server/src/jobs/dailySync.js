@@ -147,6 +147,7 @@ async function runDailySync() {
       'ch-classic-nickelodeon': 'classic-nickelodeon',
       'ch-saturday-morning': 'saturday-morning',
       'ch-unsolved-mysteries': 'unsolved-mysteries',
+      'ch-fox-kids': 'fox-kids',
     };
 
     if (STANDALONE_IDS[channel.id]) {

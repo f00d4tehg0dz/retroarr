@@ -89,6 +89,7 @@ function buildChannelGrid() {
     { id: 'ch-classic-nickelodeon',      channelNumber: 92, name: 'Classic Nickelodeon',        category: 'Cartoons', decade: '90s' },
     { id: 'ch-saturday-morning',         channelNumber: 93, name: 'Saturday Morning Cartoons',  category: 'Cartoons', decade: '80s' },
     { id: 'ch-unsolved-mysteries',       channelNumber: 94, name: 'Unsolved Mysteries',         category: 'Shows',    decade: '80s' },
+    { id: 'ch-fox-kids',                 channelNumber: 95, name: 'Fox Kids',                   category: 'Cartoons', decade: '90s' },
   ];
 
   for (const sc of STANDALONE_CHANNELS) {
