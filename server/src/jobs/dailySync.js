@@ -141,8 +141,8 @@ async function runDailySync() {
   for (const channel of db.data.channels) {
     if (!channel.enabled) continue;
 
-    // Standalone channels (e.g., Classic Nickelodeon, Saturday Morning, Unsolved Mysteries)
-    // These have dedicated IDs and fetch from the plugin videos API
+    // Standalone channels (e.g., Classic Nickelodeon, Saturday Morning, Unsolved Mysteries, Fox Kids)
+    // These are standard channels in the videos collection, tagged with standaloneChannel
     const STANDALONE_IDS = {
       'ch-classic-nickelodeon': 'classic-nickelodeon',
       'ch-saturday-morning': 'saturday-morning',
@@ -152,8 +152,8 @@ async function runDailySync() {
 
     if (STANDALONE_IDS[channel.id]) {
       try {
-        const pluginId = STANDALONE_IDS[channel.id];
-        const videos = await remoteClient.fetchPluginVideos(pluginId);
+        const channelTag = STANDALONE_IDS[channel.id];
+        const videos = await remoteClient.fetchStandaloneVideos(channelTag);
         if (videos && videos.length > 0) {
           const localDeadIds = new Set(
             (channel.cachedVideos || []).filter((v) => v.isDead).map((v) => v.id)

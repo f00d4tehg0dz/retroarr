@@ -3,15 +3,70 @@
   "description": "RetroArr Community Plugin Repository",
   "plugins": [
     {
+      "id": "classic-nickelodeon",
+      "name": "Classic Nickelodeon",
+      "description": "90s Nickelodeon shows — Rugrats, Hey Arnold, Doug, and more.",
+      "author": "retroarr",
+      "channelNumber": 92,
+      "yamlFile": "classic-nickelodeon.yaml",
+      "configFile": "classic-nickelodeon.json",
+      "tags": ["cartoons", "90s", "kids", "nickelodeon"],
+      "icon": "📺"
+    },
+    {
       "id": "mtv-classics",
       "name": "MTV Classics",
       "description": "Classic MTV music videos, Beavis & Butthead, and early reality TV.",
       "author": "retroarr",
-      "channelNumber": 95,
+      "channelNumber": 93,
       "yamlFile": "mtv-classics.yaml",
       "configFile": "mtv-classics.json",
       "tags": ["music", "90s", "80s", "mtv"],
       "icon": "🎵"
+    },
+    {
+      "id": "saturday-morning",
+      "name": "Saturday Morning Cartoons",
+      "description": "The Saturday morning cartoon block — Looney Tunes, Scooby-Doo, Smurfs, and more.",
+      "author": "retroarr",
+      "channelNumber": 94,
+      "yamlFile": "saturday-morning.yaml",
+      "configFile": "saturday-morning.json",
+      "tags": ["cartoons", "80s", "70s", "kids", "classic"],
+      "icon": "🥣"
+    },
+    {
+      "id": "nick-2000s",
+      "name": "Nickelodeon 2000s",
+      "description": "2000s Nickelodeon — Danny Phantom, Fairly OddParents, Avatar, Jimmy Neutron, and more.",
+      "author": "retroarr",
+      "channelNumber": 97,
+      "yamlFile": "nick-2000s.yaml",
+      "configFile": "nick-2000s.json",
+      "tags": ["cartoons", "00s", "kids", "nickelodeon"],
+      "icon": "🟠"
+    },
+    {
+      "id": "unsolved-mysteries",
+      "name": "Unsolved Mysteries",
+      "description": "Full episodes of Unsolved Mysteries — the Robert Stack and Dennis Farina eras, plus the Netflix reboot.",
+      "author": "retroarr",
+      "channelNumber": 98,
+      "yamlFile": "unsolved-mysteries.yaml",
+      "configFile": "unsolved-mysteries.json",
+      "tags": ["mystery", "90s", "80s", "00s", "true-crime", "documentary"],
+      "icon": "🔍"
+    },
+    {
+      "id": "fox-kids",
+      "name": "Fox Kids",
+      "description": "90s Fox Kids block — Power Rangers, X-Men, Spider-Man, Batman, and more Saturday morning classics.",
+      "author": "retroarr",
+      "channelNumber": 95,
+      "yamlFile": "fox-kids.yaml",
+      "configFile": "fox-kids.json",
+      "tags": ["cartoons", "90s", "kids", "fox"],
+      "icon": "🦊"
     }
   ]
 }

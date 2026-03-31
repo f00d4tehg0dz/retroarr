@@ -1,7 +1,7 @@
 {
-  "name": "MTV Classics",
-  "channelNumber": 93,
-  "yamlFile": "plugin-repo/mtv-classics.yaml",
+  "name": "Fox Kids",
+  "channelNumber": 95,
+  "yamlFile": "fox-kids.yaml",
   "enabled": true,
   "settings": {
     "shuffle": true,

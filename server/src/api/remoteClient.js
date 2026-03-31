@@ -49,6 +49,16 @@ async function pingRemoteApi() {
   }
 }
 
+// Fetch videos for a standalone channel (e.g., classic-nickelodeon, fox-kids)
+async function fetchStandaloneVideos(channelId) {
+  if (!config.remoteApiUrl) {
+    throw new Error('REMOTE_API_URL is not configured');
+  }
+  const client = createClient();
+  const response = await client.get(`/videos/channel/${channelId}`);
+  return response.data;
+}
+
 // Fetch plugin channels from the remote API.
 async function fetchPluginChannels() {
   if (!config.remoteApiUrl) return [];
@@ -71,4 +81,4 @@ async function fetchPluginVideos(pluginId) {
   return response.data;
 }
 
-module.exports = { fetchChannelVideos, fetchPlaylistVideos, pingRemoteApi, fetchPluginChannels, fetchPluginVideos };
+module.exports = { fetchChannelVideos, fetchPlaylistVideos, pingRemoteApi, fetchPluginChannels, fetchPluginVideos, fetchStandaloneVideos };
