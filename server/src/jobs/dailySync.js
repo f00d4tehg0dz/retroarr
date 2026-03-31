@@ -153,7 +153,19 @@ async function runDailySync() {
     if (STANDALONE_IDS[channel.id]) {
       try {
         const channelTag = STANDALONE_IDS[channel.id];
-        const videos = await remoteClient.fetchStandaloneVideos(channelTag);
+
+        // Try /videos/channel/:id first, fall back to /plugins/:id/videos
+        let videos = null;
+        try {
+          videos = await remoteClient.fetchStandaloneVideos(channelTag);
+        } catch { /* ignore */ }
+
+        if (!videos || videos.length === 0) {
+          try {
+            videos = await remoteClient.fetchPluginVideos(channelTag);
+          } catch { /* ignore */ }
+        }
+
         if (videos && videos.length > 0) {
           const localDeadIds = new Set(
             (channel.cachedVideos || []).filter((v) => v.isDead).map((v) => v.id)
@@ -170,10 +182,10 @@ async function runDailySync() {
               isDead: false,
             }));
           channel.lastVideoSync = new Date().toISOString();
-          console.log(`[Sync] Standalone "${channel.name}": ${channel.cachedVideos.length} videos from API`);
+          console.log(`[Sync] Standalone "${channel.name}": ${channel.cachedVideos.length} videos`);
           syncedCount++;
         } else {
-          console.warn(`[Sync] Standalone "${channel.name}": no videos from API`);
+          console.warn(`[Sync] Standalone "${channel.name}": no videos found`);
         }
       } catch (err) {
         console.error(`[Sync] Standalone "${channel.name}" failed: ${err.message}`);
