@@ -1,0 +1,10 @@
+{
+  "name": "Nick at Nite",
+  "channelNumber": 105,
+  "yamlFile": "nick-at-nite.yaml",
+  "enabled": true,
+  "settings": {
+    "shuffle": true,
+    "includeCommercials": false
+  }
+}

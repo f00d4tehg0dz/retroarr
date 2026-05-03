@@ -148,6 +148,17 @@ async function runDailySync() {
       'ch-saturday-morning': 'saturday-morning',
       'ch-unsolved-mysteries': 'unsolved-mysteries',
       'ch-fox-kids': 'fox-kids',
+      'ch-cartoon-cartoons': 'cartoon-cartoons',
+      'ch-pbs-kids-classic': 'pbs-kids-classic',
+      'ch-mst3k': 'mst3k',
+      'ch-sci-fi-originals': 'sci-fi-originals',
+      'ch-infomercials': 'infomercials',
+      'ch-late-night-classics': 'late-night-classics',
+      'ch-classic-game-shows': 'classic-game-shows',
+      'ch-kids-wb': 'kids-wb',
+      'ch-disney-afternoon': 'disney-afternoon',
+      'ch-nick-at-nite': 'nick-at-nite',
+      'ch-80s-90s-commercials': '80s-90s-commercials',
     };
 
     if (STANDALONE_IDS[channel.id]) {

@@ -1,0 +1,10 @@
+{
+  "name": "Disney Afternoon",
+  "channelNumber": 104,
+  "yamlFile": "disney-afternoon.yaml",
+  "enabled": true,
+  "settings": {
+    "shuffle": true,
+    "includeCommercials": false
+  }
+}

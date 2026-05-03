@@ -1,0 +1,10 @@
+{
+  "name": "PBS Kids Classic",
+  "channelNumber": 97,
+  "yamlFile": "pbs-kids-classic.yaml",
+  "enabled": true,
+  "settings": {
+    "shuffle": true,
+    "includeCommercials": false
+  }
+}

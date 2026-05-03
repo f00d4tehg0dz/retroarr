@@ -1,0 +1,10 @@
+{
+  "name": "Late Night Classics",
+  "channelNumber": 101,
+  "yamlFile": "late-night-classics.yaml",
+  "enabled": true,
+  "settings": {
+    "shuffle": true,
+    "includeCommercials": false
+  }
+}

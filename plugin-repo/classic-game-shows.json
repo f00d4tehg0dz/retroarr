@@ -1,0 +1,10 @@
+{
+  "name": "Classic Game Shows",
+  "channelNumber": 102,
+  "yamlFile": "classic-game-shows.yaml",
+  "enabled": true,
+  "settings": {
+    "shuffle": true,
+    "includeCommercials": false
+  }
+}

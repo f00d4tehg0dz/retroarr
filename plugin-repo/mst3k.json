@@ -1,0 +1,10 @@
+{
+  "name": "MST3K",
+  "channelNumber": 98,
+  "yamlFile": "mst3k.yaml",
+  "enabled": true,
+  "settings": {
+    "shuffle": true,
+    "includeCommercials": false
+  }
+}

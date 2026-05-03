@@ -1,0 +1,10 @@
+{
+  "name": "80s/90s Commercials",
+  "channelNumber": 106,
+  "yamlFile": "80s-90s-commercials.yaml",
+  "enabled": true,
+  "settings": {
+    "shuffle": true,
+    "includeCommercials": false
+  }
+}

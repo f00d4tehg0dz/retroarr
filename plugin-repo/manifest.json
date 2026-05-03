@@ -67,6 +67,127 @@
       "configFile": "fox-kids.json",
       "tags": ["cartoons", "90s", "kids", "fox"],
       "icon": "🦊"
+    },
+    {
+      "id": "cartoon-cartoons",
+      "name": "Cartoon Cartoons",
+      "description": "90s/00s Cartoon Network originals — Dexter's Lab, Powerpuff Girls, Courage the Cowardly Dog, Ed Edd n Eddy.",
+      "author": "retroarr",
+      "channelNumber": 96,
+      "yamlFile": "cartoon-cartoons.yaml",
+      "configFile": "cartoon-cartoons.json",
+      "tags": ["cartoons", "90s", "00s", "cartoon-network"],
+      "icon": "🎨"
+    },
+    {
+      "id": "pbs-kids-classic",
+      "name": "PBS Kids Classic",
+      "description": "Classic PBS Kids — Mister Rogers' Neighborhood, Reading Rainbow, and Bill Nye the Science Guy.",
+      "author": "retroarr",
+      "channelNumber": 97,
+      "yamlFile": "pbs-kids-classic.yaml",
+      "configFile": "pbs-kids-classic.json",
+      "tags": ["kids", "pbs", "educational", "90s", "80s"],
+      "icon": "📚"
+    },
+    {
+      "id": "mst3k",
+      "name": "MST3K",
+      "description": "Mystery Science Theater 3000 — full-episode marathons from the official MST3K channel.",
+      "author": "retroarr",
+      "channelNumber": 98,
+      "yamlFile": "mst3k.yaml",
+      "configFile": "mst3k.json",
+      "tags": ["comedy", "movies", "90s", "cult"],
+      "icon": "🤖"
+    },
+    {
+      "id": "sci-fi-originals",
+      "name": "Sci-Fi Originals",
+      "description": "Classic anthology sci-fi and horror — The Twilight Zone, Tales from the Crypt, Tales from the Darkside, Alfred Hitchcock Presents.",
+      "author": "retroarr",
+      "channelNumber": 99,
+      "yamlFile": "sci-fi-originals.yaml",
+      "configFile": "sci-fi-originals.json",
+      "tags": ["sci-fi", "horror", "anthology", "classic"],
+      "icon": "👽"
+    },
+    {
+      "id": "infomercials",
+      "name": "Infomercials",
+      "description": "Classic As-Seen-On-TV infomercials — Ronco, K-Tel, Magic Bullet and the rest of the late-night spend-now lineup.",
+      "author": "retroarr",
+      "channelNumber": 100,
+      "yamlFile": "infomercials.yaml",
+      "configFile": "infomercials.json",
+      "tags": ["commercials", "infomercials", "90s", "00s"],
+      "icon": "💰"
+    },
+    {
+      "id": "late-night-classics",
+      "name": "Late Night Classics",
+      "description": "Late-night talk show vault — The Tonight Show with Johnny Carson, Late Night and The Late Show with David Letterman.",
+      "author": "retroarr",
+      "channelNumber": 101,
+      "yamlFile": "late-night-classics.yaml",
+      "configFile": "late-night-classics.json",
+      "tags": ["talk", "late-night", "carson", "letterman", "80s", "90s"],
+      "icon": "🎤"
+    },
+    {
+      "id": "classic-game-shows",
+      "name": "Classic Game Shows",
+      "description": "Vintage Buzzr game-show vault — Match Game, Family Feud (Dawson), Password, Card Sharks, Sale of the Century, Supermarket Sweep.",
+      "author": "retroarr",
+      "channelNumber": 102,
+      "yamlFile": "classic-game-shows.yaml",
+      "configFile": "classic-game-shows.json",
+      "tags": ["game-shows", "70s", "80s", "buzzr"],
+      "icon": "🎯"
+    },
+    {
+      "id": "kids-wb",
+      "name": "Kids WB",
+      "description": "Kids' WB Saturday morning block — Animaniacs, Tiny Toons, Looney Tunes, Tom and Jerry, Scooby-Doo.",
+      "author": "retroarr",
+      "channelNumber": 103,
+      "yamlFile": "kids-wb.yaml",
+      "configFile": "kids-wb.json",
+      "tags": ["cartoons", "90s", "kids", "warner-bros"],
+      "icon": "🐰"
+    },
+    {
+      "id": "disney-afternoon",
+      "name": "Disney Afternoon",
+      "description": "The Disney Afternoon syndicated block — DuckTales and the full 1990–1997 lineup.",
+      "author": "retroarr",
+      "channelNumber": 104,
+      "yamlFile": "disney-afternoon.yaml",
+      "configFile": "disney-afternoon.json",
+      "tags": ["cartoons", "90s", "kids", "disney"],
+      "icon": "🦆"
+    },
+    {
+      "id": "nick-at-nite",
+      "name": "Nick at Nite",
+      "description": "Nick at Nite-style classic sitcom block — The Honeymooners, I Dream of Jeannie, The Mary Tyler Moore Show.",
+      "author": "retroarr",
+      "channelNumber": 105,
+      "yamlFile": "nick-at-nite.yaml",
+      "configFile": "nick-at-nite.json",
+      "tags": ["sitcoms", "classic", "50s", "60s", "70s"],
+      "icon": "🌙"
+    },
+    {
+      "id": "80s-90s-commercials",
+      "name": "80s/90s Commercials",
+      "description": "Pure nostalgia commercial breaks — 80s and 90s TV ads back-to-back, all night.",
+      "author": "retroarr",
+      "channelNumber": 106,
+      "yamlFile": "80s-90s-commercials.yaml",
+      "configFile": "80s-90s-commercials.json",
+      "tags": ["commercials", "80s", "90s", "nostalgia"],
+      "icon": "📼"
     }
   ]
 }

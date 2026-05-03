@@ -1,0 +1,10 @@
+{
+  "name": "Infomercials",
+  "channelNumber": 100,
+  "yamlFile": "infomercials.yaml",
+  "enabled": true,
+  "settings": {
+    "shuffle": true,
+    "includeCommercials": false
+  }
+}

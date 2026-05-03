@@ -1,0 +1,10 @@
+{
+  "name": "Kids WB",
+  "channelNumber": 103,
+  "yamlFile": "kids-wb.yaml",
+  "enabled": true,
+  "settings": {
+    "shuffle": true,
+    "includeCommercials": false
+  }
+}

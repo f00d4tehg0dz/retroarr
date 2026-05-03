@@ -1,0 +1,10 @@
+{
+  "name": "Sci-Fi Originals",
+  "channelNumber": 99,
+  "yamlFile": "sci-fi-originals.yaml",
+  "enabled": true,
+  "settings": {
+    "shuffle": true,
+    "includeCommercials": false
+  }
+}
