@@ -28,24 +28,37 @@ const CATEGORIES = [
 // Temporarily disabled channels — no content available yet.
 // Remove a channel number from this set to re-enable it.
 const DISABLED_CHANNELS = new Set([
+  1,   // 60s Shows
+  2,   // 60s Sitcoms
   3,   // 60s Cartoons
   5,   // 60s Commercials
   6,   // 60s Drama
   7,   // 60s Specials
+  8,   // 60s Theme Songs
   9,   // 60s Trailers
   10,  // 60s Bumpers
   11,  // 60s Kids
   12,  // 60s Documentary
   13,  // 60s Talk TV
+  14,  // 70s Shows
+  15,  // 70s Sitcoms
+  17,  // 70s Movies
   18,  // 70s Commercials
+  19,  // 70s Drama
+  20,  // 70s Specials
   21,  // 70s Theme Songs
   22,  // 70s Trailers
   23,  // 70s Bumpers
   24,  // 70s Kids
   25,  // 70s Documentary
   26,  // 70s Talk TV
+  27,  // 80s Shows
+  28,  // 80s Sitcoms
+  30,  // 80s Movies
   31,  // 80s Commercials
+  32,  // 80s Drama
   33,  // 80s Specials
+  34,  // 80s Theme Songs
   35,  // 80s Trailers
   36,  // 80s Bumpers
   38,  // 80s Documentary
@@ -59,20 +72,32 @@ const DISABLED_CHANNELS = new Set([
   51,  // 90s Documentary
   52,  // 90s Talk TV
   53,  // 00s Shows
+  56,  // 00s Movies
   57,  // 00s Commercials
+  58,  // 00s Drama
+  59,  // 00s Specials
   60,  // 00s Theme Songs
   61,  // 00s Trailers
   62,  // 00s Bumpers
   64,  // 00s Documentary
   65,  // 00s Talk TV
+  66,  // 10s Shows
+  67,  // 10s Sitcoms
+  69,  // 10s Movies
   70,  // 10s Commercials
+  71,  // 10s Drama
+  72,  // 10s Specials
   73,  // 10s Theme Songs
   74,  // 10s Trailers
   75,  // 10s Bumpers
   77,  // 10s Documentary
   78,  // 10s Talk TV
+  80,  // 20s Sitcoms
+  81,  // 20s Cartoons
   82,  // 20s Movies
   83,  // 20s Commercials
+  84,  // 20s Drama
+  85,  // 20s Specials
   86,  // 20s Theme Songs
   87,  // 20s Trailers
   88,  // 20s Bumpers
