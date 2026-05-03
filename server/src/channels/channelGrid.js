@@ -4,8 +4,8 @@
 // Channel numbering: decadeIndex * 13 + categoryIndex + 1  (channels 1–91)
 //   60s = 1–13, 70s = 14–26, 80s = 27–39, 90s = 40–52, 00s = 53–65, 10s = 66–78, 20s = 79–91
 //   Example: 80s Cartoons = 29, 90s Commercials = 44, 20s Shows = 79
-// Standalone channels (non-decade): 92–94
-// Plugin channels start at 95+
+// Standalone channels (non-decade): 92–96
+// Plugin channels start at 97+
 
 const DECADES = ['60s', '70s', '80s', '90s', '00s', '10s', '20s'];
 
@@ -28,16 +28,23 @@ const CATEGORIES = [
 // Temporarily disabled channels — no content available yet.
 // Remove a channel number from this set to re-enable it.
 const DISABLED_CHANNELS = new Set([
+  3,   // 60s Cartoons
+  5,   // 60s Commercials
+  6,   // 60s Drama
+  7,   // 60s Specials
   10,  // 60s Bumpers
   11,  // 60s Kids
   12,  // 60s Documentary
   13,  // 60s Talk TV
   23,  // 70s Bumpers
+  24,  // 70s Kids
   25,  // 70s Documentary
+  26,  // 70s Talk TV
   35,  // 80s Trailers
   36,  // 80s Bumpers
   38,  // 80s Documentary
   39,  // 80s Talk TV
+  45,  // 90s Drama
   48,  // 90s Trailers
   51,  // 90s Documentary
   52,  // 90s Talk TV
@@ -46,6 +53,7 @@ const DISABLED_CHANNELS = new Set([
   61,  // 00s Trailers
   62,  // 00s Bumpers
   65,  // 00s Talk TV
+  73,  // 10s Theme Songs
   74,  // 10s Trailers
   75,  // 10s Bumpers
   77,  // 10s Documentary
@@ -53,6 +61,7 @@ const DISABLED_CHANNELS = new Set([
   86,  // 20s Theme Songs
   87,  // 20s Trailers
   88,  // 20s Bumpers
+  89,  // 20s Kids
   90,  // 20s Documentary
   91,  // 20s Talk TV
 ]);
@@ -90,6 +99,7 @@ function buildChannelGrid() {
     { id: 'ch-saturday-morning',         channelNumber: 93, name: 'Saturday Morning Cartoons',  category: 'Cartoons', decade: '80s' },
     { id: 'ch-unsolved-mysteries',       channelNumber: 94, name: 'Unsolved Mysteries',         category: 'Shows',    decade: '80s' },
     { id: 'ch-fox-kids',                 channelNumber: 95, name: 'Fox Kids',                   category: 'Cartoons', decade: '90s' },
+    { id: 'ch-cartoon-cartoons',         channelNumber: 96, name: 'Cartoon Cartoons',           category: 'Cartoons', decade: '90s' },
   ];
 
   for (const sc of STANDALONE_CHANNELS) {
