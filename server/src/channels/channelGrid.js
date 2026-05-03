@@ -52,12 +52,16 @@ const DISABLED_CHANNELS = new Set([
   60,  // 00s Theme Songs
   61,  // 00s Trailers
   62,  // 00s Bumpers
+  64,  // 00s Documentary
   65,  // 00s Talk TV
+  70,  // 10s Commercials
   73,  // 10s Theme Songs
   74,  // 10s Trailers
   75,  // 10s Bumpers
   77,  // 10s Documentary
   78,  // 10s Talk TV
+  82,  // 20s Movies
+  83,  // 20s Commercials
   86,  // 20s Theme Songs
   87,  // 20s Trailers
   88,  // 20s Bumpers
