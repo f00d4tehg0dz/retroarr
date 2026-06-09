@@ -12,7 +12,20 @@ const { spawn } = require('child_process');
 const remoteClient = require('../api/remoteClient');
 const memCache = require('../api/cache');
 const { getDb } = require('../db/lowdb');
+const { STANDALONE_CHANNELS } = require('../channels/channelGrid');
 const config = require('../config');
+
+// id → slug lookup for standalone channels, sourced from the shared registry
+// so this file stays in sync when new standalone channels are added.
+const STANDALONE_ID_TO_SLUG = new Map(
+  STANDALONE_CHANNELS.map((c) => [c.id, c.slug])
+);
+
+// Count videos missing a usable duration so we can surface api-server data
+// quality issues — videos with duration=0 are silently dropped by virtualClock.
+function countMissingDuration(videos) {
+  return videos.filter((v) => !v.duration || v.duration <= 0).length;
+}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -141,41 +154,13 @@ async function runDailySync() {
   for (const channel of db.data.channels) {
     if (!channel.enabled) continue;
 
-    // Standalone channels (e.g., Classic Nickelodeon, Saturday Morning, Unsolved Mysteries, Fox Kids)
-    // These are standard channels in the videos collection, tagged with standaloneChannel
-    const STANDALONE_IDS = {
-      'ch-classic-nickelodeon': 'classic-nickelodeon',
-      'ch-saturday-morning': 'saturday-morning',
-      'ch-unsolved-mysteries': 'unsolved-mysteries',
-      'ch-fox-kids': 'fox-kids',
-      'ch-cartoon-cartoons': 'cartoon-cartoons',
-      'ch-pbs-kids-classic': 'pbs-kids-classic',
-      'ch-mst3k': 'mst3k',
-      'ch-sci-fi-originals': 'sci-fi-originals',
-      'ch-infomercials': 'infomercials',
-      'ch-late-night-classics': 'late-night-classics',
-      'ch-classic-game-shows': 'classic-game-shows',
-      'ch-kids-wb': 'kids-wb',
-      'ch-disney-afternoon': 'disney-afternoon',
-      'ch-nick-at-nite': 'nick-at-nite',
-      'ch-80s-90s-commercials': '80s-90s-commercials',
-    };
-
-    if (STANDALONE_IDS[channel.id]) {
+    // Standalone channels: api-server's /videos/channel/:slug already handles
+    // the curated-then-decade/category fallback internally, so we only need
+    // one request per channel.
+    const standaloneSlug = STANDALONE_ID_TO_SLUG.get(channel.id);
+    if (standaloneSlug) {
       try {
-        const channelTag = STANDALONE_IDS[channel.id];
-
-        // Try /videos/channel/:id first, fall back to /plugins/:id/videos
-        let videos = null;
-        try {
-          videos = await remoteClient.fetchStandaloneVideos(channelTag);
-        } catch { /* ignore */ }
-
-        if (!videos || videos.length === 0) {
-          try {
-            videos = await remoteClient.fetchPluginVideos(channelTag);
-          } catch { /* ignore */ }
-        }
+        const videos = await remoteClient.fetchStandaloneVideos(standaloneSlug);
 
         if (videos && videos.length > 0) {
           const localDeadIds = new Set(
@@ -193,7 +178,9 @@ async function runDailySync() {
               isDead: false,
             }));
           channel.lastVideoSync = new Date().toISOString();
-          console.log(`[Sync] Standalone "${channel.name}": ${channel.cachedVideos.length} videos`);
+          const missing = countMissingDuration(channel.cachedVideos);
+          const warn = missing > 0 ? ` (${missing} missing duration, will be skipped)` : '';
+          console.log(`[Sync] Standalone "${channel.name}": ${channel.cachedVideos.length} videos${warn}`);
           syncedCount++;
         } else {
           console.warn(`[Sync] Standalone "${channel.name}": no videos found`);
@@ -276,6 +263,12 @@ async function runDailySync() {
       isDead: false,
     }));
     channel.lastVideoSync = new Date().toISOString();
+    const missing = countMissingDuration(channel.cachedVideos);
+    if (missing > 0) {
+      console.warn(
+        `[Sync] ${channel.id}: ${missing}/${channel.cachedVideos.length} videos missing duration — they will be skipped by virtualClock`
+      );
+    }
     syncedCount++;
   }
 

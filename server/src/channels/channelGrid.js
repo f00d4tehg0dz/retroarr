@@ -110,6 +110,28 @@ function slugify(str) {
   return str.toLowerCase().replace(/[^a-z0-9]/g, '-');
 }
 
+// Standalone channels — span multiple decades, not part of the grid matrix.
+// `slug` is the bare identifier used by the api-server (Video.standaloneChannel
+// docs and the /videos/channel/:slug route). The "ch-" prefix is the local
+// channel id used everywhere else.
+const STANDALONE_CHANNELS = [
+  { id: 'ch-classic-nickelodeon',  slug: 'classic-nickelodeon',  channelNumber: 92,  name: 'Classic Nickelodeon',       category: 'Cartoons',    decade: '90s' },
+  { id: 'ch-saturday-morning',     slug: 'saturday-morning',     channelNumber: 93,  name: 'Saturday Morning Cartoons', category: 'Cartoons',    decade: '80s' },
+  { id: 'ch-unsolved-mysteries',   slug: 'unsolved-mysteries',   channelNumber: 94,  name: 'Unsolved Mysteries',        category: 'Shows',       decade: '80s' },
+  { id: 'ch-fox-kids',             slug: 'fox-kids',             channelNumber: 95,  name: 'Fox Kids',                  category: 'Cartoons',    decade: '90s' },
+  { id: 'ch-cartoon-cartoons',     slug: 'cartoon-cartoons',     channelNumber: 96,  name: 'Cartoon Cartoons',          category: 'Cartoons',    decade: '90s' },
+  { id: 'ch-pbs-kids-classic',     slug: 'pbs-kids-classic',     channelNumber: 97,  name: 'PBS Kids Classic',          category: 'Kids',        decade: '90s' },
+  { id: 'ch-mst3k',                slug: 'mst3k',                channelNumber: 98,  name: 'MST3K',                     category: 'Shows',       decade: '90s' },
+  { id: 'ch-sci-fi-originals',     slug: 'sci-fi-originals',     channelNumber: 99,  name: 'Sci-Fi Originals',          category: 'Shows',       decade: '80s' },
+  { id: 'ch-infomercials',         slug: 'infomercials',         channelNumber: 100, name: 'Infomercials',              category: 'Commercials', decade: '90s' },
+  { id: 'ch-late-night-classics',  slug: 'late-night-classics',  channelNumber: 101, name: 'Late Night Classics',       category: 'Talk TV',     decade: '80s' },
+  { id: 'ch-classic-game-shows',   slug: 'classic-game-shows',   channelNumber: 102, name: 'Classic Game Shows',        category: 'Shows',       decade: '70s' },
+  { id: 'ch-kids-wb',              slug: 'kids-wb',              channelNumber: 103, name: 'Kids WB',                   category: 'Cartoons',    decade: '90s' },
+  { id: 'ch-disney-afternoon',     slug: 'disney-afternoon',     channelNumber: 104, name: 'Disney Afternoon',          category: 'Cartoons',    decade: '90s' },
+  { id: 'ch-nick-at-nite',         slug: 'nick-at-nite',         channelNumber: 105, name: 'Nick at Nite',              category: 'Sitcoms',     decade: '70s' },
+  { id: 'ch-80s-90s-commercials',  slug: '80s-90s-commercials',  channelNumber: 106, name: '80s/90s Commercials',       category: 'Commercials', decade: '80s' },
+];
+
 function buildChannelGrid() {
   const channels = [];
   DECADES.forEach((decade, di) => {
@@ -133,28 +155,15 @@ function buildChannelGrid() {
     });
   });
 
-  // Standalone channels — span multiple decades, not part of the grid matrix
-  const STANDALONE_CHANNELS = [
-    { id: 'ch-classic-nickelodeon',      channelNumber: 92, name: 'Classic Nickelodeon',        category: 'Cartoons', decade: '90s' },
-    { id: 'ch-saturday-morning',         channelNumber: 93, name: 'Saturday Morning Cartoons',  category: 'Cartoons', decade: '80s' },
-    { id: 'ch-unsolved-mysteries',       channelNumber: 94, name: 'Unsolved Mysteries',         category: 'Shows',    decade: '80s' },
-    { id: 'ch-fox-kids',                 channelNumber: 95, name: 'Fox Kids',                   category: 'Cartoons', decade: '90s' },
-    { id: 'ch-cartoon-cartoons',         channelNumber: 96, name: 'Cartoon Cartoons',           category: 'Cartoons', decade: '90s' },
-    { id: 'ch-pbs-kids-classic',         channelNumber: 97, name: 'PBS Kids Classic',           category: 'Kids',        decade: '90s' },
-    { id: 'ch-mst3k',                    channelNumber: 98, name: 'MST3K',                      category: 'Shows',       decade: '90s' },
-    { id: 'ch-sci-fi-originals',         channelNumber: 99, name: 'Sci-Fi Originals',           category: 'Shows',       decade: '80s' },
-    { id: 'ch-infomercials',             channelNumber: 100, name: 'Infomercials',              category: 'Commercials', decade: '90s' },
-    { id: 'ch-late-night-classics',      channelNumber: 101, name: 'Late Night Classics',       category: 'Talk TV',     decade: '80s' },
-    { id: 'ch-classic-game-shows',       channelNumber: 102, name: 'Classic Game Shows',        category: 'Shows',       decade: '70s' },
-    { id: 'ch-kids-wb',                  channelNumber: 103, name: 'Kids WB',                   category: 'Cartoons',    decade: '90s' },
-    { id: 'ch-disney-afternoon',         channelNumber: 104, name: 'Disney Afternoon',          category: 'Cartoons',    decade: '90s' },
-    { id: 'ch-nick-at-nite',             channelNumber: 105, name: 'Nick at Nite',              category: 'Sitcoms',     decade: '70s' },
-    { id: 'ch-80s-90s-commercials',      channelNumber: 106, name: '80s/90s Commercials',       category: 'Commercials', decade: '80s' },
-  ];
-
   for (const sc of STANDALONE_CHANNELS) {
     channels.push({
-      ...sc,
+      id: sc.id,
+      channelNumber: sc.channelNumber,
+      name: sc.name,
+      decade: sc.decade,
+      category: sc.category,
+      standaloneSlug: sc.slug,
+      isStandalone: true,
       enabled: true,
       settings: { shuffle: true, includeCommercials: false },
       cachedVideos: [],
@@ -165,4 +174,4 @@ function buildChannelGrid() {
   return channels;
 }
 
-module.exports = { DECADES, CATEGORIES, buildChannelGrid };
+module.exports = { DECADES, CATEGORIES, STANDALONE_CHANNELS, buildChannelGrid };

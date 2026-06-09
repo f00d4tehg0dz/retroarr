@@ -15,7 +15,13 @@ router.get('/lineup.json', (req, res) => {
   const db = getDb();
   const hostIp = config.getLocalIp();
 
-  const enabledChannels = db.data.channels.filter((ch) => ch.enabled);
+  // Only advertise channels that are enabled AND have cached videos.
+  // Plex/Jellyfin auto-scan the lineup and tune each channel — advertising a
+  // channel with no videos returns 503 from streamManager and shows up as a
+  // failed tuner in the UI.
+  const enabledChannels = db.data.channels.filter(
+    (ch) => ch.enabled && ch.cachedVideos && ch.cachedVideos.length > 0
+  );
 
   const lineup = enabledChannels.map((ch) => ({
     GuideNumber: String(ch.channelNumber),

@@ -13,7 +13,11 @@ router.get('/playlist.m3u', (req, res) => {
   const db = getDb();
   const hostIp = config.getLocalIp();
 
-  const enabledChannels = db.data.channels.filter((ch) => ch.enabled);
+  // Mirrors lineup.json: only emit channels that actually have videos so IPTV
+  // clients don't import a stack of broken entries on a cold boot.
+  const enabledChannels = db.data.channels.filter(
+    (ch) => ch.enabled && ch.cachedVideos && ch.cachedVideos.length > 0
+  );
 
   let m3u = '#EXTM3U x-tvg-url="http://' + hostIp + ':' + config.port + '/epg.xml"\n\n';
 

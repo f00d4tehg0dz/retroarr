@@ -15,7 +15,7 @@ const cors = require('cors');
 const path = require('path');
 
 const config = require('./config');
-const { initDb } = require('./db/lowdb');
+const { initDb, getDb } = require('./db/lowdb');
 const { initSSDP } = require('./hdhr/ssdp');
 const { initScheduler } = require('./jobs/scheduler');
 const streamManager = require('./streaming/streamManager');
@@ -100,6 +100,22 @@ async function main() {
 
   // --- Step 4: Cron jobs ---
   initScheduler();
+
+  // First-boot / never-synced: kick off a background sync so the lineup isn't
+  // a wall of 503s until 3 AM rolls around. Non-blocking — boot finishes first
+  // and the sync populates cachedVideos as it goes.
+  const db = getDb();
+  if (!db.data.lastSync) {
+    console.log('[Boot] No prior sync detected — running initial sync in background...');
+    setImmediate(async () => {
+      try {
+        const { runDailySync } = require('./jobs/dailySync');
+        await runDailySync();
+      } catch (err) {
+        console.error('[Boot] Initial sync failed:', err.message);
+      }
+    });
+  }
 
   console.log('✅ RetroArr ready.\n');
 }

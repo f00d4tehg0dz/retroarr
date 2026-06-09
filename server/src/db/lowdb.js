@@ -64,8 +64,10 @@ async function initDb() {
           lastVideoSync: null,
           pluginConfig: { videoSources: [] },
         }));
-    } catch {
-      // API not available — continue with local plugins only
+    } catch (err) {
+      console.warn(
+        `[DB] Could not fetch remote plugin channels (${err.message}) — continuing with local plugins only`
+      );
     }
 
     const pluginChannels = [...localPlugins, ...remotePlugins];
@@ -76,8 +78,22 @@ async function initDb() {
     const reconciled = allExpected.map((expected) => {
       const existing = existingMap.get(expected.id);
       if (existing) {
-        // Keep user data (cachedVideos, settings, enabled); refresh structural fields
-        const merged = { ...existing, channelNumber: expected.channelNumber, name: expected.name };
+        // Keep user data (cachedVideos, settings, enabled). Refresh every
+        // structural field from code so a stale db.json (from an upgraded
+        // container reusing the named volume) picks up renamed categories,
+        // shifted decades, and new standalone metadata without manual
+        // intervention.
+        const merged = {
+          ...existing,
+          channelNumber: expected.channelNumber,
+          name: expected.name,
+          decade: expected.decade,
+          category: expected.category,
+        };
+        if (expected.standaloneSlug) {
+          merged.standaloneSlug = expected.standaloneSlug;
+          merged.isStandalone = true;
+        }
         // For plugins, also refresh pluginConfig (YAML may have changed)
         if (expected.isPlugin) {
           merged.isPlugin = true;
