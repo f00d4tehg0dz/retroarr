@@ -9,7 +9,6 @@
 //
 // Output format: XMLTV (xmltv.dtd), accepted by Plex, Jellyfin, Emby.
 
-const { seededShuffle, buildSeed } = require('../channels/seededShuffle');
 const virtualClock = require('../channels/virtualClock');
 
 // Cache generated XML for 1 hour to avoid regenerating on every request
@@ -60,8 +59,8 @@ function generateXMLTV(channels, startTime, hoursAhead) {
   hoursAhead = hoursAhead || 24;
 
   const endTime = startTime + hoursAhead * 3600 * 1000;
-  const enabledChannels = channels.filter(
-    (ch) => ch.enabled && ch.cachedVideos && ch.cachedVideos.length > 0
+  const enabledChannels = channels.filter((ch) =>
+    ch.enabled && (ch.isLive ? ch.liveVideoId && ch.liveOnline !== false : ch.cachedVideos && ch.cachedVideos.length > 0)
   );
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
@@ -79,7 +78,24 @@ function generateXMLTV(channels, startTime, hoursAhead) {
 
   // Programme entries per channel
   for (const ch of enabledChannels) {
-    const validVideos = ch.cachedVideos.filter((v) => v.duration > 0);
+    // Live channels: no clock — one "LIVE" block per hour so guides that
+    // require programme data still render something sensible.
+    if (ch.isLive) {
+      const HOUR = 3600 * 1000;
+      const liveTitle = (ch.cachedVideos[0] && ch.cachedVideos[0].title) || ch.name;
+      let cursor = Math.floor(startTime / HOUR) * HOUR;
+      while (cursor < endTime) {
+        xml += `  <programme start="${formatXMLTVDate(cursor)}" stop="${formatXMLTVDate(cursor + HOUR)}" channel="ch${ch.channelNumber}">\n`;
+        xml += `    <title lang="en">${escapeXml(ch.name)}</title>\n`;
+        xml += `    <desc lang="en">${escapeXml(`LIVE — ${liveTitle}`)}</desc>\n`;
+        xml += `    <category lang="en">Live</category>\n`;
+        xml += `  </programme>\n`;
+        cursor += HOUR;
+      }
+      continue;
+    }
+
+    const validVideos = virtualClock.playableVideos(ch.cachedVideos);
     if (!validVideos.length) continue;
 
     // Get the playhead at startTime — same logic as virtualClock

@@ -13,10 +13,11 @@ const path = require('path');
 const https = require('https');
 const http = require('http');
 const { getDb } = require('../db/lowdb');
-const { loadPlugins } = require('../plugins/pluginLoader');
+const { loadPlugins, PLUGINS_DIR } = require('../plugins/pluginLoader');
+const { reconcileChannels, remotePluginChannels } = require('../channels/reconcile');
+const config = require('../config');
 
-const PLUGINS_DIR = path.resolve(__dirname, '../../../plugins');
-const REPO_DIR = path.resolve(__dirname, '../../../plugin-repo');
+const REPO_DIR = config.pluginRepoDir;
 
 // The GitHub raw URL base for fetching plugin files remotely.
 // Falls back to reading from the local plugin-repo/ directory if this is
@@ -183,17 +184,14 @@ router.post('/install', async (req, res) => {
     // Fetch YAML file
     const yamlContent = await fetchPluginFile(pluginMeta.yamlFile);
 
-    // Ensure plugins/ and plugin-repo/ dirs exist
+    // Ensure the plugins dir exists (in Docker this lives on the db volume)
     if (!fs.existsSync(PLUGINS_DIR)) {
       fs.mkdirSync(PLUGINS_DIR, { recursive: true });
     }
 
-    // Write the YAML file to plugin-repo/ so pluginLoader can find it
-    const yamlDir = path.resolve(__dirname, '../../../plugin-repo');
-    if (!fs.existsSync(yamlDir)) {
-      fs.mkdirSync(yamlDir, { recursive: true });
-    }
-    fs.writeFileSync(path.join(yamlDir, pluginMeta.yamlFile), yamlContent, 'utf8');
+    // Write the YAML next to the config so pluginLoader finds it regardless
+    // of where the repo lives (or whether plugin-repo/ is writable).
+    fs.writeFileSync(path.join(PLUGINS_DIR, path.basename(pluginMeta.yamlFile)), yamlContent, 'utf8');
 
     // Write the plugin config JSON to plugins/
     fs.writeFileSync(
@@ -204,54 +202,17 @@ router.post('/install', async (req, res) => {
 
     // Reconcile: reload plugins and merge into DB
     const db = getDb();
-    const { buildChannelGrid } = require('../channels/channelGrid');
-    const expectedGrid = buildChannelGrid();
-    const pluginChannels = loadPlugins();
-    const allExpected = [...expectedGrid, ...pluginChannels];
-    const existingMap = new Map(db.data.channels.map((c) => [c.id, c]));
-
-    db.data.channels = allExpected.map((expected) => {
-      const existing = existingMap.get(expected.id);
-      if (existing) {
-        const merged = { ...existing, channelNumber: expected.channelNumber, name: expected.name };
-        if (expected.isPlugin) {
-          merged.isPlugin = true;
-          merged.pluginConfig = expected.pluginConfig;
-        }
-        return merged;
-      }
-      return expected;
-    });
-
+    db.data.channels = reconcileChannels(db.data.channels, [...loadPlugins(), ...remotePluginChannels(db.data.channels)], db.data.remoteConfig).channels;
     await db.write();
 
-    // Immediately sync videos for the newly installed plugin
-    const newChannel = db.data.channels.find(
-      (ch) => ch.isPlugin && ch.name === pluginMeta.name
-    );
+    // Sync videos for the newly installed plugin in the background
+    // (remote API first, yt-dlp against the YAML as fallback).
+    const newChannel = db.data.channels.find((ch) => ch.isPlugin && ch.name === pluginMeta.name);
     if (newChannel) {
-      try {
-        const pluginId = newChannel.id.replace(/^ch-plugin-/, '');
-        const remoteClient = require('../api/remoteClient');
-        const videos = await remoteClient.fetchPluginVideos(pluginId);
-        if (videos && videos.length > 0) {
-          newChannel.cachedVideos = videos.map((v) => ({
-            id: v.id,
-            title: v.title || 'Untitled',
-            description: v.description || '',
-            duration: parseInt(v.duration, 10) || 0,
-            thumbnailUrl: v.thumbnailUrl || '',
-            lastVerified: Date.now(),
-            isDead: false,
-          }));
-          newChannel.lastVideoSync = new Date().toISOString();
-          await db.write();
-          console.log(`[PluginRepo] Synced ${videos.length} videos for "${pluginMeta.name}" from API`);
-        }
-      } catch (err) {
-        console.warn(`[PluginRepo] Could not sync videos from API for "${pluginMeta.name}": ${err.message}`);
-        // Videos will be synced on next daily sync or manual sync
-      }
+      const { syncChannel } = require('../jobs/dailySync');
+      syncChannel(newChannel.id)
+        .then((r) => console.log(`[PluginRepo] Synced ${r.count} videos for "${pluginMeta.name}" via ${r.source}`))
+        .catch((err) => console.warn(`[PluginRepo] Could not sync videos for "${pluginMeta.name}": ${err.message}`));
     }
 
     console.log(`[PluginRepo] Installed "${pluginMeta.name}" (CH ${pluginMeta.channelNumber})`);
@@ -305,30 +266,15 @@ router.post('/uninstall', async (req, res) => {
     // Remove the config JSON from plugins/
     fs.unlinkSync(configPath);
 
-    // Reconcile DB — the removed plugin will be cleaned up
+    // Also drop the YAML we wrote next to it (ignore if it lives elsewhere)
+    const yamlName = pluginMeta?.yamlFile ? path.basename(pluginMeta.yamlFile) : null;
+    if (yamlName && fs.existsSync(path.join(PLUGINS_DIR, yamlName))) {
+      try { fs.unlinkSync(path.join(PLUGINS_DIR, yamlName)); } catch {}
+    }
+
+    // Reconcile DB — the removed plugin's channel is dropped
     const db = getDb();
-    const { buildChannelGrid } = require('../channels/channelGrid');
-    const expectedGrid = buildChannelGrid();
-    const pluginChannels = loadPlugins();
-    const allExpected = [...expectedGrid, ...pluginChannels];
-    const expectedIds = new Set(allExpected.map((c) => c.id));
-    const existingMap = new Map(db.data.channels.map((c) => [c.id, c]));
-
-    const reconciled = allExpected.map((expected) => {
-      const existing = existingMap.get(expected.id);
-      if (existing) {
-        const merged = { ...existing, channelNumber: expected.channelNumber, name: expected.name };
-        if (expected.isPlugin) {
-          merged.isPlugin = true;
-          merged.pluginConfig = expected.pluginConfig;
-        }
-        return merged;
-      }
-      return expected;
-    });
-
-    // Remove channels that are no longer expected
-    db.data.channels = reconciled;
+    db.data.channels = reconcileChannels(db.data.channels, [...loadPlugins(), ...remotePluginChannels(db.data.channels)], db.data.remoteConfig).channels;
     await db.write();
 
     const pluginName = pluginMeta?.name || pluginId;

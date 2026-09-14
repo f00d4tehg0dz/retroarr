@@ -9,20 +9,24 @@ const router = express.Router();
 const config = require('../config');
 const { getDb } = require('../db/lowdb');
 
-router.get('/playlist.m3u', (req, res) => {
+// Both names are served: README/Plex users know it as lineup.m3u, the
+// dashboard historically linked playlist.m3u.
+router.get(['/playlist.m3u', '/lineup.m3u'], (req, res) => {
   const db = getDb();
   const hostIp = config.getLocalIp();
 
   // Mirrors lineup.json: only emit channels that actually have videos so IPTV
   // clients don't import a stack of broken entries on a cold boot.
-  const enabledChannels = db.data.channels.filter(
-    (ch) => ch.enabled && ch.cachedVideos && ch.cachedVideos.length > 0
+  const enabledChannels = db.data.channels.filter((ch) =>
+    ch.enabled && (ch.isLive ? ch.liveVideoId && ch.liveOnline !== false : ch.cachedVideos && ch.cachedVideos.length > 0)
   );
 
   let m3u = '#EXTM3U x-tvg-url="http://' + hostIp + ':' + config.port + '/epg.xml"\n\n';
 
   for (const ch of enabledChannels) {
-    m3u += `#EXTINF:-1 tvg-id="ch${ch.channelNumber}" tvg-name="${ch.name}" tvg-chno="${ch.channelNumber}" group-title="${ch.decade}",${ch.name}\n`;
+    const group = ch.isLive ? 'Live' : ch.isPlugin ? 'Plugins' : ch.isStandalone ? 'Curated' : ch.decade || 'RetroArr';
+    const name = String(ch.name).replace(/"/g, "'");
+    m3u += `#EXTINF:-1 tvg-id="ch${ch.channelNumber}" tvg-name="${name}" tvg-chno="${ch.channelNumber}" group-title="${group}",${ch.name}\n`;
     m3u += `http://${hostIp}:${config.port}/stream/${ch.id}\n\n`;
   }
 

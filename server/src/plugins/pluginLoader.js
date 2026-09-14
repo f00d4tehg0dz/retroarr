@@ -8,9 +8,25 @@
 
 const fs = require('fs');
 const path = require('path');
+const appConfig = require('../config');
 
-const PLUGINS_DIR = path.resolve(__dirname, '../../../plugins');
-const YAML_ROOT = path.resolve(__dirname, '../../..'); // repo root for YAML files
+// Installed plugin configs (PLUGINS_DIR env, default <repo>/plugins).
+const PLUGINS_DIR = appConfig.pluginsDir;
+const REPO_ROOT = path.resolve(__dirname, '../../..');
+
+// A plugin's yamlFile may be a bare name or a repo-relative path. Look in the
+// plugins dir itself first (where the installer writes it), then the bundled
+// plugin-repo/, then the repo root.
+function resolveYamlPath(yamlFile) {
+  const name = path.basename(yamlFile);
+  const candidates = [
+    path.join(PLUGINS_DIR, name),
+    path.join(appConfig.pluginRepoDir, name),
+    path.resolve(REPO_ROOT, yamlFile),
+    path.resolve(PLUGINS_DIR, yamlFile),
+  ];
+  return candidates.find((c) => fs.existsSync(c)) || candidates[0];
+}
 
 /**
  * Parse a YAML file (same format as import-yaml.js).
@@ -38,6 +54,14 @@ function parseYamlFile(filePath) {
   }
 
   return entries;
+}
+
+function extractLiveVideoId(url) {
+  const m =
+    String(url).match(/\/live\/([A-Za-z0-9_-]{11})/) ||
+    String(url).match(/[?&]v=([A-Za-z0-9_-]{11})/) ||
+    String(url).match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
 }
 
 function slugify(str) {
@@ -83,16 +107,54 @@ function loadPlugins() {
       console.warn(`[Plugin] Skipping ${file}: duplicate channelNumber ${config.channelNumber}`);
       continue;
     }
+    // Live plugin: { "name", "channelNumber", "live": "https://www.youtube.com/live/<id>" }
+    // — a 24/7 YouTube stream as a channel, no playlist needed.
+    if (typeof config.live === 'string' && config.live.trim()) {
+      const liveId = extractLiveVideoId(config.live);
+      if (!liveId) {
+        console.warn(`[Plugin] Skipping ${file}: "live" is not a YouTube live/watch URL`);
+        continue;
+      }
+      usedNumbers.add(config.channelNumber);
+      const slug = slugify(config.name);
+      channels.push({
+        id: `ch-live-${slug}`,
+        liveSlug: slug,
+        isLive: true,
+        isPlugin: true,
+        channelNumber: config.channelNumber,
+        name: config.name,
+        description: config.description || '',
+        decade: null,
+        category: config.category || 'Live',
+        enabled: config.enabled !== false,
+        settings: { shuffle: false, includeCommercials: false },
+        liveVideoId: liveId,
+        liveUrl: `https://www.youtube.com/live/${liveId}`,
+        liveYoutubeChannel: config.youtubeChannel || '',
+        liveOnline: true,
+        thumbnailUrl: config.thumbnailUrl || '',
+        pluginConfig: { configFile: file, videoSources: [], live: config.live },
+        cachedVideos: [{ id: liveId, title: config.name, description: '', duration: 0, thumbnailUrl: '', isLive: true, isDead: false, lastVerified: Date.now() }],
+        lastVideoSync: new Date().toISOString(),
+      });
+      console.log(`[Plugin] Loaded live channel "${config.name}" (CH ${config.channelNumber}) — ${liveId}`);
+      continue;
+    }
+
     if (!config.yamlFile || typeof config.yamlFile !== 'string') {
-      console.warn(`[Plugin] Skipping ${file}: missing "yamlFile"`);
+      console.warn(`[Plugin] Skipping ${file}: missing "yamlFile" (or "live" for a live channel)`);
       continue;
     }
 
     usedNumbers.add(config.channelNumber);
 
     // Parse the referenced YAML file
-    const yamlPath = path.resolve(YAML_ROOT, config.yamlFile);
+    const yamlPath = resolveYamlPath(config.yamlFile);
     const videoSources = parseYamlFile(yamlPath);
+    if (!fs.existsSync(yamlPath)) {
+      console.warn(`[Plugin] "${config.name}": YAML file ${config.yamlFile} not found (looked in ${PLUGINS_DIR} and ${REPO_ROOT})`);
+    }
 
     const id = `ch-plugin-${slugify(config.name)}`;
 
@@ -112,6 +174,8 @@ function loadPlugins() {
         yamlFile: config.yamlFile,
         configFile: file,
         videoSources,
+        // Optional: content-filter profile ("Cartoons", "Commercials"…)
+        category: typeof config.category === 'string' ? config.category : null,
       },
       cachedVideos: [],
       lastVideoSync: null,
@@ -130,4 +194,4 @@ function getPluginIds() {
   return loadPlugins().map((ch) => ch.id);
 }
 
-module.exports = { loadPlugins, getPluginIds, parseYamlFile };
+module.exports = { loadPlugins, getPluginIds, parseYamlFile, resolveYamlPath, PLUGINS_DIR };

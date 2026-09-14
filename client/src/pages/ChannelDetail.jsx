@@ -46,13 +46,31 @@ export default function ChannelDetail() {
               CH {channel.channelNumber}
             </div>
             <h1 className="text-2xl font-bold mt-1 text-m3-text">{channel.name}</h1>
-            <div className="flex gap-3 mt-2 text-sm text-m3-muted">
-              <span>{channel.decade}</span>
-              <span className="text-m3-border">—</span>
-              <span>{channel.category}</span>
-              <span className="text-m3-border">—</span>
-              <span><span className="text-m3-primary font-medium">{channel.cachedVideos?.length ?? 0}</span> videos</span>
-            </div>
+            {channel.isLive ? (
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-m3-muted">
+                <span className={`border text-xs px-1.5 py-0.5 font-semibold rounded-full ${channel.liveOnline === false ? 'border-m3-muted/40 text-m3-muted' : 'border-m3-error/40 text-m3-error'}`}>
+                  {channel.liveOnline === false ? 'OFF AIR' : 'LIVE'}
+                </span>
+                <span>24/7 YouTube stream</span>
+                {channel.uploader && (<><span className="text-m3-border">—</span><span>{channel.uploader}</span></>)}
+                {channel.liveUrl && (
+                  <>
+                    <span className="text-m3-border">—</span>
+                    <a href={channel.liveUrl} target="_blank" rel="noreferrer" className="text-m3-accent hover:underline font-mono text-xs">
+                      {channel.liveVideoId}
+                    </a>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="flex gap-3 mt-2 text-sm text-m3-muted">
+                <span>{channel.decade}</span>
+                <span className="text-m3-border">—</span>
+                <span>{channel.category}</span>
+                <span className="text-m3-border">—</span>
+                <span><span className="text-m3-primary font-medium">{channel.cachedVideos?.length ?? 0}</span> videos</span>
+              </div>
+            )}
           </div>
 
           <button
@@ -133,8 +151,8 @@ export default function ChannelDetail() {
         </div>
       )}
 
-      {/* Videos list */}
-      {channel.cachedVideos?.length > 0 && (
+      {/* Videos list (VOD channels only — a live channel has no playlist) */}
+      {!channel.isLive && channel.cachedVideos?.length > 0 && (
         <div className="border border-m3-border p-5 rounded-m3 shadow-m3 space-y-2">
           <h2 className="text-sm font-semibold text-m3-primary border-b border-m3-border pb-2">
             Videos ({channel.cachedVideos.length})

@@ -25,9 +25,11 @@ router.get('/', (req, res) => {
     channels = channels.filter((c) => c.enabled === enabled);
   }
   if (req.query.type === 'plugin') {
-    channels = channels.filter((c) => c.isPlugin);
+    channels = channels.filter((c) => c.isPlugin && !c.isLive);
+  } else if (req.query.type === 'live') {
+    channels = channels.filter((c) => c.isLive);
   } else if (req.query.type === 'grid') {
-    channels = channels.filter((c) => !c.isPlugin);
+    channels = channels.filter((c) => !c.isPlugin && !c.isLive);
   }
 
   res.json(channels);
@@ -40,8 +42,23 @@ router.get('/nowplaying', (req, res) => {
   const virtualClock = require('../channels/virtualClock');
 
   const result = db.data.channels
-    .filter((ch) => ch.enabled && ch.cachedVideos.length > 0)
+    .filter((ch) => ch.enabled && Array.isArray(ch.cachedVideos) && ch.cachedVideos.length > 0)
     .map((ch) => {
+      if (ch.isLive) {
+        return {
+          id: ch.id,
+          channelNumber: ch.channelNumber,
+          name: ch.name,
+          decade: ch.decade,
+          category: ch.category || 'Live',
+          isPlugin: ch.isPlugin || false,
+          isLive: true,
+          isOnline: ch.liveOnline !== false,
+          nowPlaying: ch.liveVideoId
+            ? { videoId: ch.liveVideoId, title: (ch.cachedVideos[0] && ch.cachedVideos[0].title) || ch.name, seekSeconds: 0, duration: 0, isLive: true }
+            : null,
+        };
+      }
       const playhead = virtualClock.getPlayheadForChannel(ch);
       return {
         id: ch.id,
@@ -50,6 +67,7 @@ router.get('/nowplaying', (req, res) => {
         decade: ch.decade,
         category: ch.category,
         isPlugin: ch.isPlugin || false,
+        isLive: false,
         nowPlaying: playhead
           ? {
               videoId: playhead.video.id,

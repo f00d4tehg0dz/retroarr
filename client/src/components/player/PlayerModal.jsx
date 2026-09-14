@@ -44,7 +44,7 @@ export default function PlayerModal() {
 
           <div className="flex items-center gap-3">
             <span className="text-m3-muted text-xs hidden sm:block">
-              {channel.decade} · {channel.category}
+              {channel.isLive ? `24/7 stream${channel.uploader ? ' · ' + channel.uploader : ''}` : `${channel.decade} · ${channel.category}`}
             </span>
             <button
               onClick={close}

@@ -41,4 +41,5 @@ Thumbs.db
 *.swp
 
 .history
-/history
+/historydocker/last-build.log
+docker/stream-sample.ts

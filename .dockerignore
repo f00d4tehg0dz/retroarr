@@ -1,21 +1,30 @@
 node_modules
+**/node_modules
 .git
 .gitignore
+.github
 *.md
+
+# Environment files — NEVER bake these into the image. A developer's server/.env
+# once shipped a Windows yt-dlp path to every Linux user.
 .env
 .env.*
+**/.env
+**/.env.*
+!**/.env.example
 
 # Client build artifacts (rebuilt in Docker)
-client/node_modules
 client/dist
 server/public
 
-# Server local DB (persisted via Docker volume)
-server/db/db.json
+# Server local state (persisted via Docker volume)
+server/db
+server/data/commercials/*
+plugins/
 
-# API server
-api-server/node_modules
-api-server/.env
+# Private API server / scripts (not part of the image)
+api-server/
+scripts/
 
 # IDE / OS
 .vscode
@@ -24,6 +33,10 @@ api-server/.env
 *.swo
 Thumbs.db
 .DS_Store
+.history
 
-# Scripts (not needed at runtime)
-scripts/
+# retroarr-private extras never needed in the image
+landing/
+yaml/
+claude.md
+.claude/

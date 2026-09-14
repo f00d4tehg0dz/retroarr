@@ -36,7 +36,7 @@ function getCommercialFiles() {
 // Use ffprobe to get duration of a local file in seconds
 function getFileDuration(filePath) {
   return new Promise((resolve) => {
-    const proc = spawn('ffprobe', [
+    const proc = spawn(config.ffprobePath || 'ffprobe', [
       '-v', 'quiet',
       '-print_format', 'json',
       '-show_format',

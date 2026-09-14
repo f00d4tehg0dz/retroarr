@@ -1,12 +1,14 @@
-# RetroArr — Multi-stage Docker build
+# RetroArr — Multi-stage Docker build (linux/amd64 + linux/arm64)
 #
 # Stage 1: Build the React client
-# Stage 2: Runtime with Node.js 20, FFmpeg, and yt-dlp on Alpine
+# Stage 2: Runtime with Node.js 22, FFmpeg and yt-dlp on Alpine
+#
+# Build from the repo root:  docker build -f docker/Dockerfile -t retroarr .
 
 # ─────────────────────────────────────────────────────────────────
 # Stage 1: React build
 # ─────────────────────────────────────────────────────────────────
-FROM node:20-alpine AS client-builder
+FROM node:22-alpine AS client-builder
 
 WORKDIR /app/client
 
@@ -20,58 +22,72 @@ RUN npm run build
 # ─────────────────────────────────────────────────────────────────
 # Stage 2: Runtime
 # ─────────────────────────────────────────────────────────────────
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 
 LABEL maintainer="RetroArr"
 LABEL description="Self-hosted YouTube linear TV server with HDHomeRun emulation"
 
-# Install system dependencies:
-#   ffmpeg  — video transcoding
-#   python3 — required by yt-dlp for some extractors
-#   curl    — to download yt-dlp binary
-#   ca-certificates — for HTTPS requests
-RUN apk add --no-cache \
-    ffmpeg \
-    python3 \
-    curl \
-    ca-certificates \
+# System dependencies:
+#   ffmpeg          — video transcoding
+#   python3         — runs the yt-dlp zipapp
+#   curl            — downloads yt-dlp, used by the healthcheck
+#   ca-certificates — HTTPS
+#   tini            — proper PID 1 so SIGTERM reaches node and zombies are reaped
+RUN apk add --no-cache ffmpeg python3 curl ca-certificates tini \
     && rm -rf /var/cache/apk/*
 
-# Install yt-dlp as a standalone binary
-# Pinned to a stable release for reproducibility
-RUN curl -L \
-    "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp" \
-    -o /usr/local/bin/yt-dlp \
-    && chmod +x /usr/local/bin/yt-dlp \
+# yt-dlp: the "yt-dlp" release asset is the portable Python zipapp — it runs on
+# any architecture with python3 and bundles the EJS scripts modern YouTube
+# extraction needs. It can self-update with `yt-dlp -U` (see entrypoint).
+RUN curl -fsSL "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp" \
+        -o /usr/local/bin/yt-dlp \
+    && chmod a+rx /usr/local/bin/yt-dlp \
     && yt-dlp --version
 
-# Set working directory
+# Binary locations are pinned here so a stray .env can never redirect them.
+# Node 22 doubles as yt-dlp's JavaScript runtime (--js-runtimes node).
+ENV NODE_ENV=production \
+    FFMPEG_PATH=/usr/bin/ffmpeg \
+    FFPROBE_PATH=/usr/bin/ffprobe \
+    YTDLP_PATH=/usr/local/bin/yt-dlp \
+    YTDLP_JS_RUNTIME=node \
+    YTDLP_AUTO_UPDATE=true \
+    PORT=8888 \
+    DB_PATH=/app/server/db/db.json \
+    PLUGINS_DIR=/app/server/db/plugins \
+    COMMERCIALS_DIR=/app/server/data/commercials
+
 WORKDIR /app/server
 
 # Install production dependencies only
 COPY server/package*.json ./
-RUN npm ci --only=production \
+RUN npm ci --omit=dev \
     && npm cache clean --force
 
-# Copy server source
+# Copy server source, then make sure no developer .env rides along
 COPY server/ ./
+RUN rm -f .env .env.* && mkdir -p /app/server/db /app/server/data/commercials
 
-# Copy the compiled React app from stage 1 into the server's public dir
+# Bundled community plugin definitions (offline fallback for the plugin store)
+COPY plugin-repo/ /app/plugin-repo/
+
+# Compiled React app from stage 1
 COPY --from=client-builder /app/server/public ./public
 
-# Create volume mount points
-RUN mkdir -p /app/server/db
+COPY docker/entrypoint.sh /usr/local/bin/retroarr-entrypoint
+RUN chmod +x /usr/local/bin/retroarr-entrypoint
 
-# Persist data across container restarts
+# Persist data across container restarts (db.json + installed plugins)
 VOLUME ["/app/server/db"]
 
-# HTTP port (HDHomeRun convention)
+# HTTP (dashboard, HDHomeRun API, streams)
 EXPOSE 8888
-# SSDP UDP port (HDHomeRun discovery)
+# HDHomeRun discovery + SSDP (only meaningful with host networking)
+EXPOSE 65001/udp
 EXPOSE 1900/udp
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:8888/api/status || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD curl -fsS "http://127.0.0.1:${PORT:-8888}/api/status" || exit 1
 
+ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/retroarr-entrypoint"]
 CMD ["node", "src/index.js"]

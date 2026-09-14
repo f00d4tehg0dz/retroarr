@@ -1,11 +1,12 @@
 {
   "name": "retroarr-server",
-  "version": "1.0.0",
-  "description": "RetroArr backend — HDHomeRun emulation + YouTube linear TV",
+  "version": "1.1.0",
+  "description": "RetroArr backend \u2014 HDHomeRun emulation + YouTube linear TV",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "check": "node -e \"require('fs').readdirSync('src',{recursive:true}).filter(f=>f.endsWith('.js')).forEach(f=>require('child_process').execFileSync(process.execPath,['--check','src/'+f]))\" && echo syntax ok"
   },
   "dependencies": {
     "axios": "^1.7.2",
@@ -18,5 +19,8 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.4"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

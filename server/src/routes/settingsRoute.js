@@ -28,11 +28,23 @@ router.put('/', async (req, res) => {
     'streamQuality',
     'tunerCount',
   ];
+  const { FORMAT_MAP } = require('../streaming/ytdlp');
   for (const key of allowed) {
-    if (req.body[key] !== undefined) {
-      db.data.settings[key] = req.body[key];
+    if (req.body[key] === undefined) continue;
+    let value = req.body[key];
+    if (key === 'streamQuality' && !FORMAT_MAP[value]) {
+      return res.status(400).json({ error: `streamQuality must be one of ${Object.keys(FORMAT_MAP).join(', ')}` });
     }
+    if (key === 'tunerCount') {
+      value = parseInt(value, 10);
+      if (!Number.isFinite(value) || value < 1 || value > 32) {
+        return res.status(400).json({ error: 'tunerCount must be between 1 and 32' });
+      }
+    }
+    db.data.settings[key] = value;
   }
+  // Quality is read by the ffmpeg scaler from config at stream start
+  if (req.body.streamQuality) require('../config').streamQuality = req.body.streamQuality;
   await db.write();
   res.json({ ok: true });
 });

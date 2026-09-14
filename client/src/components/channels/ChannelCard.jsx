@@ -4,7 +4,9 @@ import usePlayerStore from '../../store/usePlayerStore';
 
 export default function ChannelCard({ channel, nowPlaying }) {
   const openPlayer = usePlayerStore((s) => s.open);
-  const hasVideos = channel.cachedVideos?.length > 0;
+  const isLive = !!channel.isLive;
+  const isOffline = isLive && channel.liveOnline === false;
+  const hasVideos = isLive ? !!channel.liveVideoId && !isOffline : channel.cachedVideos?.length > 0;
 
   function handlePlay(e) {
     e.preventDefault();
@@ -28,13 +30,28 @@ export default function ChannelCard({ channel, nowPlaying }) {
         </div>
 
         {/* Channel name */}
-        <div className="text-xs font-semibold text-m3-text leading-tight mb-2">
-          {channel.category}
+        <div className="text-xs font-semibold text-m3-text leading-tight mb-2 flex items-center gap-1.5">
+          <span className="truncate">{isLive || channel.isPlugin ? channel.name : channel.category}</span>
+          {isLive && (
+            <span
+              className={`shrink-0 border text-[10px] px-1 py-px font-semibold rounded-full ${
+                isOffline ? 'border-m3-muted/40 text-m3-muted' : 'border-m3-error/40 text-m3-error'
+              }`}
+            >
+              {isOffline ? 'OFF AIR' : 'LIVE'}
+            </span>
+          )}
         </div>
 
         {/* Now playing */}
         <div className="text-xs truncate pb-5">
-          {nowPlaying?.title ? (
+          {isLive ? (
+            isOffline ? (
+              <span className="text-m3-muted">Stream offline</span>
+            ) : (
+              <span className="text-m3-error">● {nowPlaying?.title || channel.uploader || 'Streaming now'}</span>
+            )
+          ) : nowPlaying?.title ? (
             <span className="text-m3-success">▶ {nowPlaying.title}</span>
           ) : hasVideos ? (
             <span className="text-m3-muted">{channel.cachedVideos.length} videos</span>

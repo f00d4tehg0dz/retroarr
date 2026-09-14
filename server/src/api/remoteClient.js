@@ -81,4 +81,38 @@ async function fetchPluginVideos(pluginId) {
   return response.data;
 }
 
-module.exports = { fetchChannelVideos, fetchPlaylistVideos, pingRemoteApi, fetchPluginChannels, fetchPluginVideos, fetchStandaloneVideos };
+// Fetch the shared channel definition (grid + standalone + plugin + live
+// channels) from the API. This is the source of truth that keeps every
+// RetroArr instance's lineup in step with the API; the local grid in
+// channelGrid.js is only the offline fallback.
+async function fetchConfig() {
+  if (!config.remoteApiUrl) return null;
+  const client = createClient();
+  const response = await client.get('/config', { timeout: 10000 });
+  const data = response.data;
+  if (!data || !Array.isArray(data.channelGrid)) throw new Error('unexpected /config payload');
+  return data;
+}
+
+// Fetch 24/7 live channels (also embedded in /config; this is the cheap refresh).
+async function fetchLiveChannels() {
+  if (!config.remoteApiUrl) return [];
+  try {
+    const client = createClient();
+    const response = await client.get('/live', { timeout: 10000 });
+    return Array.isArray(response.data) ? response.data : [];
+  } catch {
+    return [];
+  }
+}
+
+module.exports = {
+  fetchChannelVideos,
+  fetchPlaylistVideos,
+  pingRemoteApi,
+  fetchPluginChannels,
+  fetchPluginVideos,
+  fetchStandaloneVideos,
+  fetchConfig,
+  fetchLiveChannels,
+};

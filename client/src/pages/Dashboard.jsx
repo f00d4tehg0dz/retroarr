@@ -117,11 +117,29 @@ export default function Dashboard() {
 
       {/* Grid */}
       {channels && (
-        <ChannelGrid channels={channels.filter((c) => !c.isPlugin)} nowPlayingMap={nowPlayingMap} />
+        <ChannelGrid channels={channels.filter((c) => !c.isPlugin && !c.isLive)} nowPlayingMap={nowPlayingMap} />
+      )}
+
+      {/* Live Channels — 24/7 YouTube streams, no virtual clock */}
+      {channels && channels.some((c) => c.isLive) && (
+        <div className="mt-8 space-y-3">
+          <div className="border-b border-m3-border pb-2 flex items-center gap-3">
+            <h2 className="text-lg font-bold tracking-tight text-m3-text">Live Channels</h2>
+            <span className="border border-m3-error/40 text-m3-error text-xs px-1.5 py-0.5 font-medium rounded-full">LIVE</span>
+            <p className="text-m3-muted text-sm">24/7 YouTube live streams — always on, no schedule</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+            {channels
+              .filter((c) => c.isLive)
+              .map((ch) => (
+                <ChannelCard key={ch.id} channel={ch} nowPlaying={nowPlayingMap[ch.id]?.nowPlaying} />
+              ))}
+          </div>
+        </div>
       )}
 
       {/* Custom / Plugin Channels */}
-      {channels && channels.some((c) => c.isPlugin) && (
+      {channels && channels.some((c) => c.isPlugin && !c.isLive) && (
         <div className="mt-8 space-y-3">
           <div className="border-b border-m3-border pb-2">
             <h2 className="text-lg font-bold tracking-tight text-m3-text">
@@ -133,7 +151,7 @@ export default function Dashboard() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
             {channels
-              .filter((c) => c.isPlugin)
+              .filter((c) => c.isPlugin && !c.isLive)
               .map((ch) => {
                 const nowPlaying = nowPlayingMap[ch.id]?.nowPlaying;
                 return (

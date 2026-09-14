@@ -17,8 +17,11 @@ export default function TvMode() {
 
   const filteredChannels = useMemo(() => {
     if (!selectedDecade) return channels;
+    if (selectedDecade === 'Live') return channels.filter((ch) => ch.isLive);
     return channels.filter((ch) => ch.decade === selectedDecade);
   }, [channels, selectedDecade]);
+
+  const hasLive = channels.some((ch) => ch.isLive);
 
   const currentChannel = useMemo(() => {
     if (!channels.length) return null;
@@ -87,7 +90,7 @@ export default function TvMode() {
             >
               All
             </button>
-            {DECADES.map((d) => (
+            {[...DECADES, ...(hasLive ? ['Live'] : [])].map((d) => (
               <button
                 key={d}
                 onClick={() => setSelectedDecade(selectedDecade === d ? null : d)}
@@ -137,6 +140,9 @@ export default function TvMode() {
                   <span className={`text-xs font-medium truncate ${isActive ? 'text-m3-text' : 'text-m3-textSecondary'}`}>
                     {ch.name}
                   </span>
+                  {ch.isLive && (
+                    <span className="ml-auto shrink-0 border border-m3-error/40 text-m3-error text-[10px] px-1 py-px font-semibold rounded-full">LIVE</span>
+                  )}
                 </div>
                 {ch.nowPlaying && (
                   <div className="text-xs text-m3-muted truncate mt-0.5 pl-8">

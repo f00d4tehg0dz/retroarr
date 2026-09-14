@@ -18,6 +18,12 @@
 
 const { seededShuffle, buildSeed, getDaySeed } = require('./seededShuffle');
 
+// Videos that take part in the schedule. Dead videos are excluded so the EPG
+// and the stream agree, and so a dead video never lands in the queue.
+function playableVideos(videos) {
+  return (videos || []).filter((v) => v && v.id && v.duration > 0 && !v.isDead);
+}
+
 // Get the start epoch from LowDB (avoids circular dependency at require time)
 function getStartEpoch() {
   const { getDb } = require('../db/lowdb');
@@ -40,8 +46,9 @@ function getPlayheadForChannel(channel, targetTime) {
   const startEpoch = getStartEpoch();
   if (!startEpoch) return null;
 
-  // Total playlist duration in ms (skip videos with no duration)
-  const validVideos = videos.filter((v) => v.duration > 0);
+  // Total playlist duration in ms (skip videos with no duration or known dead).
+  // NOTE: epg/generator.js relies on this exact filter — keep them in sync.
+  const validVideos = playableVideos(videos);
   if (validVideos.length === 0) return null;
 
   const seed = buildSeed(channel.id, now);
@@ -105,4 +112,4 @@ function getUpcomingQueue(channel, targetTime, count) {
   return queue;
 }
 
-module.exports = { getPlayheadForChannel, getUpcomingQueue };
+module.exports = { getPlayheadForChannel, getUpcomingQueue, playableVideos };

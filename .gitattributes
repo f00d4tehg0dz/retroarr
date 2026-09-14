@@ -1,2 +1,8 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Shell scripts must stay LF — a CRLF entrypoint breaks the Docker image
+# ("no such file or directory" for /bin/sh^M) even when built from Windows.
+*.sh text eol=lf
+docker/entrypoint.sh text eol=lf
+Dockerfile text eol=lf
