@@ -18,7 +18,7 @@ router.get(['/playlist.m3u', '/lineup.m3u'], (req, res) => {
   // Mirrors lineup.json: only emit channels that actually have videos so IPTV
   // clients don't import a stack of broken entries on a cold boot.
   const enabledChannels = db.data.channels.filter((ch) =>
-    ch.enabled && (ch.isLive ? ch.liveVideoId && ch.liveOnline !== false : ch.cachedVideos && ch.cachedVideos.length > 0)
+    ch.enabled && (ch.isLive ? !!ch.liveVideoId : ch.cachedVideos && ch.cachedVideos.length > 0)
   );
 
   let m3u = '#EXTM3U x-tvg-url="http://' + hostIp + ':' + config.port + '/epg.xml"\n\n';

@@ -287,10 +287,8 @@ async function startLiveChannelStream(channel, res) {
   if (!channel.liveVideoId) {
     return res.status(503).json({ error: 'Live channel has no stream ID yet. Run a sync.' });
   }
-  if (channel.liveOnline === false) {
-    return res.status(503).json({ error: `${channel.name} is offline right now.` });
-  }
-
+  // Always re-check on tune: the stored online flag can be stale (it comes
+  // from the API's last check), and a 24/7 stream is usually back up.
   // Resolve BEFORE sending headers so an offline stream is a clean 503
   let resolved;
   try {

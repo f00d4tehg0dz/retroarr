@@ -60,7 +60,7 @@ function generateXMLTV(channels, startTime, hoursAhead) {
 
   const endTime = startTime + hoursAhead * 3600 * 1000;
   const enabledChannels = channels.filter((ch) =>
-    ch.enabled && (ch.isLive ? ch.liveVideoId && ch.liveOnline !== false : ch.cachedVideos && ch.cachedVideos.length > 0)
+    ch.enabled && (ch.isLive ? !!ch.liveVideoId : ch.cachedVideos && ch.cachedVideos.length > 0)
   );
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
