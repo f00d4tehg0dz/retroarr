@@ -93,7 +93,12 @@ const GENERIC_WORDS = new Set(['adventures', 'adventure', 'animated', 'cartoon',
   'children', 'friends', 'family', 'kingdom', 'masters', 'legends', 'legend', 'returns', 'extreme', 'ultimate', 'original',
   'universe', 'journey', 'wonderful', 'magical', 'special', 'presents', 'theatre', 'theater', 'hour', 'america', 'american',
   'animals', 'little', 'mighty', 'super', 'power', 'rangers', 'rescue', 'squad', 'patrol', 'defenders', 'heroes', 'warriors',
-  'unlimited', 'beyond', 'tonight', 'morning', 'weekend', 'saturday', 'sunday', 'brothers', 'sisters', 'detective', 'forever']);
+  'unlimited', 'beyond', 'tonight', 'morning', 'weekend', 'saturday', 'sunday', 'brothers', 'sisters', 'detective', 'forever',
+  // 6-letter generics
+  'secret', 'island', 'hunter', 'hunters', 'doctor', 'agents', 'school', 'police', 'ranger', 'wonder', 'robots', 'racers', 'dragon',
+  'dragons', 'knight', 'knights', 'pirate', 'pirates', 'planet', 'galaxy', 'future', 'rescue', 'garden', 'street', 'circus', 'jungle',
+  'animal', 'castle', 'giants', 'mouse', 'kitten', 'puppies', 'friend', 'people', 'things', 'stuff', 'action', 'cosmic', 'mister',
+  'little', 'toonsl', 'comedy', 'sports', 'babies', 'twins', 'ghosts', 'spirit', 'master', 'return', 'secret', 'amazing', 'strange']);
 
 const STOPWORDS = new Set(['the', 'a', 'an', 'of', 'and', 'in', 'on', 'to', 'show', 'series', 'tv', 'season', 'episode', 'full', 'hd', 'new', 'with', 'for', 'at']);
 
@@ -131,9 +136,9 @@ function mentionsShow(title, showName) {
   const whole = normalize(showName).replace(/^the /, '').replace(/[^a-z0-9]/g, '');
   if (whole.length >= 6 && compact.includes(whole)) return true;
 
-  // One distinctive word is enough ("Heathcliff Pumps Iron", "Ghost Busters
-  // Last Train to Oblivion"): long and not a generic title word.
-  if (tokens.some((tok) => tok.length >= 7 && !GENERIC_WORDS.has(tok) && has(tok))) return true;
+  // One distinctive word is enough ("Heathcliff Pumps Iron", "Popeye - Greek
+  // Mirthology", "Mumfie Songs"): 6+ letters and not a generic title word.
+  if (tokens.some((tok) => tok.length >= 6 && !GENERIC_WORDS.has(tok) && has(tok))) return true;
 
   // Main title before ':' / ' - ' (e.g. "Superman: The Animated Series")
   const main = String(showName).split(/:| - /)[0];
