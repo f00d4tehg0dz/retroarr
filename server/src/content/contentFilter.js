@@ -77,7 +77,24 @@ const FLUFF_RULES = [
 // Uploaders that are always fluff, regardless of playlist (lower-case, no @)
 const DEFAULT_BLOCKED_UPLOADERS = ['oggone'];
 
+// Baby / toddler content never belongs on a retro channel. Channel names are
+// matched as substrings of the uploader; title phrases as regex.
+const TODDLER_UPLOADERS = [
+  'cocomelon', 'moonbug', 'wildbrain kids', 'wildbrain giggles', 'wildbrain fizz', 'little baby bum',
+  'super simple', 'pinkfong', 'baby shark', 'kedoo', 'toonstv', 'bebefinn', 'blippi', 'baby einstein',
+  'little angel', 'babybus', 'hey bear', 'dave and ava', 'chuchu tv', 'lalafun', 'boom buddies',
+];
+const TODDLER_TITLE_RE = /\b(for (toddlers|babies|preschoolers|kids \d|little kids)|nursery rhymes?|baby songs?|kids songs?|learn (colors|colours|numbers|abc|shapes)|toddler learning|preschool learning|educational videos? for (kids|children)|bedtime stories? for kids|sing[- ]?along)\b/i;
+
 // Words that are too generic to count as "matches the show name"
+// Long words that appear in many show names and don't identify one on their own
+const GENERIC_WORDS = new Set(['adventures', 'adventure', 'animated', 'cartoon', 'cartoons', 'classic', 'classics', 'complete', 'episodes',
+  'amazing', 'incredible', 'fantastic', 'spectacular', 'mysteries', 'mystery', 'captain', 'planet', 'monsters', 'stories',
+  'children', 'friends', 'family', 'kingdom', 'masters', 'legends', 'legend', 'returns', 'extreme', 'ultimate', 'original',
+  'universe', 'journey', 'wonderful', 'magical', 'special', 'presents', 'theatre', 'theater', 'hour', 'america', 'american',
+  'animals', 'little', 'mighty', 'super', 'power', 'rangers', 'rescue', 'squad', 'patrol', 'defenders', 'heroes', 'warriors',
+  'unlimited', 'beyond', 'tonight', 'morning', 'weekend', 'saturday', 'sunday', 'brothers', 'sisters', 'detective', 'forever']);
+
 const STOPWORDS = new Set(['the', 'a', 'an', 'of', 'and', 'in', 'on', 'to', 'show', 'series', 'tv', 'season', 'episode', 'full', 'hd', 'new', 'with', 'for', 'at']);
 
 function normalize(str) {
@@ -97,22 +114,82 @@ function showTokens(showName) {
 }
 
 // Does the title mention the show at all? ("Doug S01E02" → yes; "Heart of Ice" → no)
+// Accepts: ≥2 distinctive words of the name (or all of them if fewer), the
+// main title before a colon ("Batman" for "Batman: The Animated Series"
+// only when that part has 2+ distinctive words or is itself distinctive),
+// or an acronym of the name ("TAS", "TMNT", "SWAT Kats" → "sk" is too short).
 function mentionsShow(title, showName) {
   const tokens = showTokens(showName);
   if (!tokens.length) return true;
   const t = normalize(title);
-  const hits = tokens.filter((tok) => t.includes(tok)).length;
-  return hits >= Math.min(2, tokens.length);
+  const words = new Set(t.split(' '));
+  // Space/punctuation-insensitive: "Ghost Busters" ↔ "Ghostbusters", "X-Men" ↔ "XMen"
+  const compact = t.replace(/[^a-z0-9]/g, '');
+  const has = (tok) => t.includes(tok) || compact.includes(tok);
+  const hits = tokens.filter(has).length;
+  if (hits >= Math.min(2, tokens.length)) return true;
+  const whole = normalize(showName).replace(/^the /, '').replace(/[^a-z0-9]/g, '');
+  if (whole.length >= 6 && compact.includes(whole)) return true;
+
+  // One distinctive word is enough ("Heathcliff Pumps Iron", "Ghost Busters
+  // Last Train to Oblivion"): long and not a generic title word.
+  if (tokens.some((tok) => tok.length >= 7 && !GENERIC_WORDS.has(tok) && has(tok))) return true;
+
+  // Main title before ':' / ' - ' (e.g. "Superman: The Animated Series")
+  const main = String(showName).split(/:| - /)[0];
+  const mainTokens = showTokens(main);
+  if (mainTokens.length && mainTokens.length < tokens.length && mainTokens.every((tok) => t.includes(tok))) {
+    // a single generic-ish word needs a companion: the rest-of-name acronym
+    if (mainTokens.length >= 2 || mainTokens[0].length >= 6) return true;
+  }
+
+  // Acronyms: initials of all words (minus articles) and of the part after ':'
+  const initials = (str) => normalize(str).split(' ').filter((w) => w && !['the', 'a', 'an', 'of', 'and'].includes(w)).map((w) => w[0]).join('');
+  const acronyms = [initials(showName), initials(String(showName).split(':')[1] || '')].filter((a) => a.length >= 3);
+  if (acronyms.some((a) => words.has(a))) return true;
+  return false;
+}
+
+// Playlist "show names" that are really blocks / mixes / labels
+const LABEL_RE = /\b(mix|block|compilations?|commercials?|bumpers?|promos?|idents?|specials|theme songs|various|misc(ellaneous)?|marathons?|variety|collection|playlist)\b|^(kids|cartoons|shows|sitcoms|drama|movies|documentar(y|ies)|talk tv|unknown|untitled)$|^\d{2,4}s\b/i;
+function isLabelName(name) { return LABEL_RE.test(String(name || '').trim()); }
+
+// Does the title contain one of the show's known episode titles?
+// Titles are normalised; very short ones (< 5 chars, e.g. "Pi") are ignored
+// to avoid accidental matches.
+function matchesEpisodeTitle(title, episodeTitles) {
+  if (!episodeTitles || !episodeTitles.length) return false;
+  const bare = (x) => normalize(x).replace(/'/g, '').replace(/\s+/g, ' ');
+  const t = ` ${bare(title)} `;
+  for (const ep of episodeTitles) {
+    const e = bare(ep);
+    if (e.length >= 5 && t.includes(` ${e} `)) return true;
+  }
+  return false;
 }
 
 // Episode-ish signals: S01E02, 1x02, "Episode 5", "Ep. 5", "Part 2", "Full Episode"
 const EPISODE_RE = /\b(s\d{1,2}\s?e\d{1,3}|\d{1,2}x\d{1,3}|season\s?\d+|episode\s?\d+|ep\.?\s?\d+|e\d{1,3}|part\s?\d+|full episode|complete episode|pilot)\b/i;
 
+// Episode numbering as it appears in uploads of a show's own playlist: the
+// EPISODE_RE markers plus "#08", misspelled "Epiosde 26", and a leading
+// episode number ("088 Babes in Troyland", "02 Animal Antics"). Only used for
+// the show-match rule, never to rescue fluff; listicles ("10 Best…") are
+// excluded and still hit the fluff rules anyway.
+const LISTICLE_RE = /^\s*\d{1,3}\s+(best|top|worst|most|greatest|funniest|things|times|reasons|facts|secrets|moments|characters|episodes|details|mistakes|hidden|craziest|weirdest|scariest|saddest)\b/i;
+function hasEpisodeNumber(title) {
+  const t = String(title || '');
+  if (EPISODE_RE.test(t)) return true;
+  if (LISTICLE_RE.test(t)) return false;
+  return /(^|\s)#\s?\d{1,3}\b|\bep[a-z]{0,6}\.?\s?\d{1,3}\b|^\s*\d{1,3}\s*[-.):]?\s+[a-z]/i.test(t);
+}
+
 /**
  * Evaluate one video for a channel.
  *
  * @param {object} video   { id, title, duration (s), description?, uploader?, channel?, channelId?, liveStatus?, isShort? }
- * @param {object} ctx     { category, showName?, blockedUploaders?: string[], playlistUploader?: string, showTypicalSeconds?: number, strict?: boolean }
+ * @param {object} ctx     { category, showName?, blockedUploaders?: string[], playlistUploader?: string, showTypicalSeconds?: number,
+ *                            requireShowMatch?: boolean, episodeTitles?: string[], strict?: boolean }
  * @returns {{ keep: boolean, reason: string|null, score: number, signals: string[] }}
  */
 function evaluate(video, ctx = {}) {
@@ -128,6 +205,23 @@ function evaluate(video, ctx = {}) {
   const blocked = (ctx.blockedUploaders || DEFAULT_BLOCKED_UPLOADERS).map((u) => u.toLowerCase().replace(/^@/, ''));
   if (uploader && blocked.some((b) => uploader === b || uploader.includes(b) || uploaderId === b)) {
     return { keep: false, reason: 'blocked uploader', score: 999, signals: ['blocked-uploader'] };
+  }
+
+  // Baby / toddler content: dropped on every channel
+  if (TODDLER_UPLOADERS.some((u) => uploader.includes(u)) || TODDLER_TITLE_RE.test(title)) {
+    return { keep: false, reason: 'toddler/baby content', score: 999, signals: ['toddler'] };
+  }
+
+  // Strict show relevance (ctx.requireShowMatch): an entry must name the show,
+  // carry an episode marker (S01E02, Episode 5, Part 2), or match a known
+  // episode title of the show (ctx.episodeTitles, e.g. from Wikipedia).
+  if (ctx.requireShowMatch && ctx.showName && (profile.episodic || profile.feature)) {
+    const byName = mentionsShow(title, ctx.showName);
+    const byMarker = hasEpisodeNumber(title);
+    const byEpisode = matchesEpisodeTitle(title, ctx.episodeTitles);
+    if (!byName && !byMarker && !byEpisode) {
+      return { keep: false, reason: 'not identifiable as this show (no show name, episode number or episode title)', score: 999, signals: ['no-show-match'] };
+    }
   }
 
   // Live / upcoming streams are never VOD content
@@ -257,20 +351,44 @@ function filterVideos(videos, ctx = {}) {
     if (durs.length >= 3) showTypicalSeconds = durs[Math.min(durs.length - 1, Math.floor(durs.length * 0.75))];
   }
 
+  // Show-match rule safety valves:
+  //  - the "show" is really a block/label ("The Disney Afternoon Block",
+  //    "1990s Sitcoms Mix", "Buzzr Compilation") → rule doesn't apply
+  //  - we have no episode-title list AND under 30% of titles name the show or
+  //    carry an episode number → the uploader probably titles by episode name
+  //    only; don't guess, report it for review instead of wiping the playlist
+  let requireShowMatch = !!ctx.requireShowMatch;
+  let showMatchSkipped = null;
+  if (requireShowMatch && (!ctx.showName || isLabelName(ctx.showName))) {
+    requireShowMatch = false;
+    showMatchSkipped = 'label, not a show';
+  } else if (requireShowMatch && !(ctx.episodeTitles && ctx.episodeTitles.length) && list.length >= 5) {
+    const hits = list.filter((v) => mentionsShow(v.title, ctx.showName) || hasEpisodeNumber(v.title)).length;
+    if (hits / list.length < 0.3) {
+      requireShowMatch = false;
+      showMatchSkipped = `no episode titles and only ${Math.round((hits / list.length) * 100)}% name the show — review manually`;
+    }
+  }
+
   const kept = [];
   const dropped = [];
   for (const v of list) {
-    const verdict = evaluate(v, { ...ctx, playlistUploader, showTypicalSeconds });
+    const verdict = evaluate(v, { ...ctx, requireShowMatch, playlistUploader, showTypicalSeconds });
     if (verdict.keep) kept.push(v);
     else dropped.push({ ...v, filterReason: verdict.reason, filterSignals: verdict.signals });
   }
-  return { kept, dropped, playlistUploader, showTypicalSeconds };
+  return { kept, dropped, playlistUploader, showTypicalSeconds, showMatchSkipped };
 }
 
 module.exports = {
   evaluate,
   filterVideos,
   mentionsShow,
+  hasEpisodeNumber,
+  matchesEpisodeTitle,
+  isLabelName,
+  TODDLER_UPLOADERS,
+  TODDLER_TITLE_RE,
   CATEGORY_PROFILES,
   FLUFF_RULES,
   DEFAULT_BLOCKED_UPLOADERS,
