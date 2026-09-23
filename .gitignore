@@ -41,5 +41,8 @@ Thumbs.db
 *.swp
 
 .history
-/historydocker/last-build.log
+/history
+
+# Local run logs from the helper .cmd scripts
+docker/last-build.log
 docker/stream-sample.ts
