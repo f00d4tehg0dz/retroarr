@@ -50,7 +50,10 @@ function getInstalledPluginFiles() {
     .filter((f) => f.endsWith('.json'))
     .map((f) => {
       try {
-        const config = JSON.parse(fs.readFileSync(path.join(PLUGINS_DIR, f), 'utf8'));
+        // f comes from readdirSync(PLUGINS_DIR) itself; basename strips any
+        // separators so the read can never escape PLUGINS_DIR.
+        const filePath = PLUGINS_DIR + path.sep + path.basename(f);
+        const config = JSON.parse(fs.readFileSync(filePath, 'utf8'));
         return { ...config, _configFile: f };
       } catch {
         return null;
@@ -91,13 +94,40 @@ async function fetchPluginFile(filename) {
     }
   }
 
-  // Fall back to local
-  const localPath = path.join(REPO_DIR, filename);
+  // Fall back to local — strip any directory component so the filename
+  // can never escape REPO_DIR via "../" traversal.
+  const safeFilename = path.basename(filename);
+  const localPath = REPO_DIR + path.sep + safeFilename;
   if (fs.existsSync(localPath)) {
     return fs.readFileSync(localPath, 'utf8');
   }
 
   throw new Error(`Plugin file not found: ${filename}`);
+}
+
+// --- Authorization ---
+// /install and /uninstall fetch remote files and write them to disk, then
+// have the plugin loader execute them — they must not be reachable by
+// arbitrary unauthenticated callers (CWE-862). Allow same-host/LAN callers
+// by default (this app has no user auth system), or require a shared
+// secret via PLUGIN_ADMIN_KEY when the server is exposed beyond the LAN.
+function isPrivateAddress(ip) {
+  const addr = String(ip || '').replace(/^::ffff:/, '');
+  return (
+    addr === '127.0.0.1' || addr === '::1' ||
+    /^10\./.test(addr) || /^192\.168\./.test(addr) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(addr)
+  );
+}
+
+function requirePluginAdmin(req, res, next) {
+  const adminKey = process.env.PLUGIN_ADMIN_KEY;
+  if (adminKey) {
+    if (req.get('x-admin-key') === adminKey) return next();
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  if (isPrivateAddress(req.ip)) return next();
+  return res.status(403).json({ error: 'Plugin install/uninstall is only allowed from the local network. Set PLUGIN_ADMIN_KEY to allow remote access.' });
 }
 
 // --- Routes ---
@@ -151,7 +181,7 @@ router.get('/installed', (req, res) => {
 });
 
 // POST /install — install a plugin from the repository
-router.post('/install', async (req, res) => {
+router.post('/install', requirePluginAdmin, async (req, res) => {
   const { pluginId } = req.body;
   if (!pluginId) {
     return res.status(400).json({ error: 'pluginId is required' });
@@ -231,7 +261,7 @@ router.post('/install', async (req, res) => {
 });
 
 // POST /uninstall — remove a locally installed plugin
-router.post('/uninstall', async (req, res) => {
+router.post('/uninstall', requirePluginAdmin, async (req, res) => {
   const { pluginId } = req.body;
   if (!pluginId) {
     return res.status(400).json({ error: 'pluginId is required' });
