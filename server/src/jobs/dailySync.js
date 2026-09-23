@@ -60,6 +60,8 @@ function applyVideos(channel, videos) {
   for (const raw of videos || []) {
     const v = toCached(raw);
     if (!v.id || seen.has(v.id)) continue;
+    // Never cache placeholders for videos that went private / were deleted
+    if (/^\s*\[(private|deleted) video\]\s*$/i.test(v.title || '')) continue;
     seen.add(v.id);
     const wasDead = dead.get(v.id);
     if (wasDead) {
