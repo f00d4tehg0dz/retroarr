@@ -86,6 +86,8 @@ const TODDLER_UPLOADERS = [
 ];
 const TODDLER_TITLE_RE = /\b(for (toddlers|babies|preschoolers|kids \d|little kids)|nursery rhymes?|baby songs?|kids songs?|learn (colors|colours|numbers|abc|shapes)|toddler learning|preschool learning|educational videos? for (kids|children)|bedtime stories? for kids|sing[- ]?along)\b/i;
 
+const SPAM_TITLE_RE = /\b(earn|make)\s+(money|\$+|cash)\b|\bhow to (earn|make money)|\bfreelanc(er|ing|e website)\b|\bpassive income\b|\bcreate (a )?youtube channel\b|\byoutube algorithm\b|\b(crypto|forex) (trading|signals)\b|\bwork from home\b/i;
+
 // Words that are too generic to count as "matches the show name"
 // Long words that appear in many show names and don't identify one on their own
 const GENERIC_WORDS = new Set(['adventures', 'adventure', 'animated', 'cartoon', 'cartoons', 'classic', 'classics', 'complete', 'episodes',
@@ -210,6 +212,17 @@ function evaluate(video, ctx = {}) {
   const blocked = (ctx.blockedUploaders || DEFAULT_BLOCKED_UPLOADERS).map((u) => u.toLowerCase().replace(/^@/, ''));
   if (uploader && blocked.some((b) => uploader === b || uploader.includes(b) || uploaderId === b)) {
     return { keep: false, reason: 'blocked uploader', score: 999, signals: ['blocked-uploader'] };
+  }
+
+  // Placeholders for videos that were made private / deleted after import
+  if (/^\s*\[(private|deleted) video\]\s*$/i.test(title)) {
+    return { keep: false, reason: 'private/deleted video', score: 999, signals: ['unavailable'] };
+  }
+
+  // Make-money / freelancing / YouTube-growth spam that ends up in hijacked
+  // or re-used playlists — never TV content on any channel
+  if (SPAM_TITLE_RE.test(title)) {
+    return { keep: false, reason: 'spam (make-money / channel-growth)', score: 999, signals: ['spam'] };
   }
 
   // Baby / toddler content: dropped on every channel
@@ -394,6 +407,7 @@ module.exports = {
   isLabelName,
   TODDLER_UPLOADERS,
   TODDLER_TITLE_RE,
+  SPAM_TITLE_RE,
   CATEGORY_PROFILES,
   FLUFF_RULES,
   DEFAULT_BLOCKED_UPLOADERS,
