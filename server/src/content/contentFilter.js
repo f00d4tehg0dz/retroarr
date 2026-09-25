@@ -46,6 +46,33 @@ const CATEGORY_PROFILES = {
 const DEFAULT_PROFILE = { minSeconds: 60, maxSeconds: 8 * 3600, episodic: false };
 
 // ---------------------------------------------------------------------------
+// House rules (hard, no rescue) for every channel except the short-form ones
+// (Commercials, Bumpers, Theme Songs, Trailers, which are short by nature):
+//   • nothing whose title says "compilation"
+//   • nothing shorter than 15 minutes (videos with unknown length are kept
+//     until their duration is known)
+// ---------------------------------------------------------------------------
+// Per-category minimum can be lowered with HOUSE_RULE_MIN_MINUTES, e.g.
+//   HOUSE_RULE_MIN_MINUTES=Cartoons=6,Kids=6,Talk TV=5
+const MIN_EPISODE_SECONDS = 15 * 60;
+const COMPILATION_RE = /\bcompilations?\b/i;
+const SHORT_FORM_CATEGORIES = Object.keys(CATEGORY_PROFILES).filter((c) => CATEGORY_PROFILES[c].shortForm);
+const MIN_SECONDS_OVERRIDES = Object.fromEntries(String(process.env.HOUSE_RULE_MIN_MINUTES || '')
+  .split(',').map((kv) => kv.split('=').map((x) => x.trim())).filter(([k, v]) => k && Number(v) >= 0)
+  .map(([k, v]) => [k, Number(v) * 60]));
+function minSecondsFor(category) {
+  return category in MIN_SECONDS_OVERRIDES ? MIN_SECONDS_OVERRIDES[category] : MIN_EPISODE_SECONDS;
+}
+function houseRule(title, duration, category) {
+  if (SHORT_FORM_CATEGORIES.includes(category)) return null;
+  if (COMPILATION_RE.test(String(title || ''))) return 'compilation';
+  const d = Number(duration) || 0;
+  const min = minSecondsFor(category);
+  if (d > 0 && d < min) return `under ${Math.round(min / 60)} min (${Math.round(d / 60)}m)`;
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Title patterns. Each rule: { re, reason, unless?, soft?, maxDuration? }
 //   unless      — profile flag that makes the pattern legitimate for that category
 //   soft        — adds doubt (40) instead of deciding alone (100)
@@ -225,6 +252,10 @@ function evaluate(video, ctx = {}) {
     return { keep: false, reason: 'spam (make-money / channel-growth)', score: 999, signals: ['spam'] };
   }
 
+  // House rules: no compilations, nothing under 15 minutes
+  const house = houseRule(title, duration, category);
+  if (house) return { keep: false, reason: house, score: 999, signals: ['house-rule'] };
+
   // Baby / toddler content: dropped on every channel
   if (TODDLER_UPLOADERS.some((u) => uploader.includes(u)) || TODDLER_TITLE_RE.test(title)) {
     return { keep: false, reason: 'toddler/baby content', score: 999, signals: ['toddler'] };
@@ -399,6 +430,12 @@ function filterVideos(videos, ctx = {}) {
 }
 
 module.exports = {
+  MIN_EPISODE_SECONDS,
+  COMPILATION_RE,
+  SHORT_FORM_CATEGORIES,
+  MIN_SECONDS_OVERRIDES,
+  minSecondsFor,
+  houseRule,
   evaluate,
   filterVideos,
   mentionsShow,

@@ -52,6 +52,9 @@ services:
       # - ADMIN_TOKEN=change-me
       # Behind a reverse proxy (nginx, Caddy, Traefik, Cloudflare Tunnel):
       # - TRUST_PROXY=1
+      # Content rules: no "compilation" videos, nothing under 15 min, except
+      # these categories' own minimums (commercials/bumpers/themes/trailers exempt)
+      - "HOUSE_RULE_MIN_MINUTES=Cartoons=6,Kids=6,Talk TV=5"
       # yt-dlp tuning
       - YTDLP_AUTO_UPDATE=true            # refresh yt-dlp on every start
       # - YTDLP_COOKIES=/app/server/db/cookies.txt
