@@ -70,9 +70,9 @@ function minSecondsFor(category) {
 // and no English ones, e.g. "Josie y las Melodías").
 const NON_LATIN_RE = /[Ͱ-ϿЀ-ӿ֐-׿؀-ۿऀ-ॿ฀-๿ᄀ-ᇿ぀-ヿ㐀-䶿一-鿿가-힯]/;
 // Matched against the title with accents stripped ("capítulo" → "capitulo")
-const FOREIGN_MARKER_RE = /\b(espanol|castellano|latino|doblad[oa]|doblaje|capitulos?|episodios?|temporadas?|dublad[oa]|legendad[oa]|portugues|desenho|francais|vostfr|saison|auf deutsch|deutsche? (fassung|synchro)|hd deutsch|folge\s*\d+|synchro|italiano|sub ita|puntata|serie completa|completo|dibujos animados|caricaturas|peliculas?)\b/i;
+const FOREIGN_MARKER_RE = /\b(espanol|castellano|latino|doblad[oa]|doblaje|capitulos?|episodios?|temporadas?|dublad[oa]|legendad[oa]|portugues|desenho|francais|vostfr|saison|auf deutsch|deutsche? (fassung|synchro)|hd deutsch|folge\s*\d+|synchro|italiano|sub ita|puntata|serie completa|completo|dibujos animados|caricaturas|peliculas?|(russian|hindi|german|french|spanish|italian|portuguese|polish|czech|turkish|arabic|dutch|greek|korean|japanese|chinese|norsk|dansk|svensk|ukrainian)\s*(dub|dubbed|audio|version|tale|tal))\b/i;
 const FOREIGN_MARKER_RAW_RE = /épisode|\bVF\b/;
-const FOREIGN_WORDS = new Set(['y', 'las', 'los', 'el', 'del', 'con', 'por', 'para', 'una', 'uno', 'su', 'sus', 'contra', 'les', 'des', 'du', 'et', 'aux', 'della', 'dei', 'gli', 'uma', 'dos', 'das', 'und', 'der', 'mit', 'ein', 'eine', 'nel', 'nella']);
+const FOREIGN_WORDS = new Set(['y', 'las', 'los', 'el', 'del', 'con', 'por', 'para', 'una', 'uno', 'su', 'sus', 'contra', 'les', 'des', 'du', 'et', 'aux', 'della', 'dei', 'gli', 'uma', 'dos', 'das', 'und', 'der', 'mit', 'ein', 'eine', 'nel', 'nella', 'il', 'dello', 'delle', 'degli', 'di']);
 const ENGLISH_WORDS = new Set(['the', 'and', 'of', 'to', 'in', 'a', 'is', 'with', 'on', 'for', 'at', 'from', 'his', 'her', 'my', 'your', 'it', 'episode', 'season', 'part', 'full', 'meets', 'vs']);
 function nonEnglishReason(title, language, uploader) {
   if (language && !/^(en|und|zxx)\b/i.test(String(language))) return `non-English (${language})`;
