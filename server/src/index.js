@@ -9,6 +9,7 @@
 //   6. Register cron jobs (dailySync, cleanup, EPG refresh)
 
 const express = require('express');
+const { guardApi, adminTokenConfigured } = require('./middleware/requireAdmin');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
@@ -100,6 +101,12 @@ async function main() {
   // --- Step 4: Express ---
   const app = express();
   app.disable('x-powered-by');
+  // Behind a reverse proxy: TRUST_PROXY=1 (or a hop count / subnet) so req.ip
+  // is the real client — required for the local-network admin check.
+  if (process.env.TRUST_PROXY && process.env.TRUST_PROXY !== '0' && process.env.TRUST_PROXY !== 'false') {
+    const tp = process.env.TRUST_PROXY;
+    app.set('trust proxy', /^\d+$/.test(tp) ? parseInt(tp, 10) : tp === 'true' ? true : tp);
+  }
   app.use(cors());
   app.use(express.json());
 
@@ -112,7 +119,9 @@ async function main() {
   // Stream endpoint
   app.use('/stream', streamRoute);
 
-  // JSON API for the React dashboard
+  // JSON API for the React dashboard. Reads are open; changes (and debug
+  // tools) need the local network or ADMIN_TOKEN — see middleware/requireAdmin.
+  app.use('/api', guardApi);
   app.use('/api/channels', channelsRoute);
   app.use('/api/settings', settingsRoute);
   app.use('/api/reports', reportsRoute);
@@ -128,6 +137,7 @@ async function main() {
       deviceId: config.deviceId,
       deviceName: db.data.settings.deviceName || config.deviceName,
       activeStreams: streamManager.getActiveStreamCount(),
+      adminMode: adminTokenConfigured ? 'token' : 'local-network',
       recentlyFailedVideos: streamManager.getRecentlyFailedCount(),
       binaries: {
         ffmpeg: config.ffmpegPath,

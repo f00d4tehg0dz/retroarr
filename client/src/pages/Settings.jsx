@@ -1,6 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useSettings, useUpdateSettings, useForceSync } from '../hooks/useSettings';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
+import { useStatus } from '../hooks/useSettings';
+import { getAdminKey, setAdminKey } from '../api/retroApi';
+
+function AccessPanel() {
+  const { data: status } = useStatus();
+  const [key, setKey] = useState(getAdminKey());
+  const [saved, setSaved] = useState(false);
+  const tokenMode = status?.adminMode === 'token';
+  return (
+    <div className="panel p-5 sm:p-6 space-y-3">
+      <h2 className="eyebrow">Access</h2>
+      <p className="text-sm text-m3-muted">
+        {tokenMode
+          ? 'This server requires an admin key for changes (ADMIN_TOKEN). Enter it once per browser.'
+          : 'Changes are allowed from your local network. Set ADMIN_TOKEN on the server to manage RetroArr from anywhere with a key.'}
+      </p>
+      <div className="flex gap-2">
+        <input className="input" type="password" autoComplete="off" placeholder="Admin key" value={key}
+          onChange={(e) => { setKey(e.target.value); setSaved(false); }} />
+        <button type="button" className="btn-secondary shrink-0" onClick={() => { setAdminKey(key.trim()); setSaved(true); }}>
+          {saved ? 'Saved' : 'Save'}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function Settings() {
   const { data: settings, isLoading } = useSettings();
@@ -37,14 +63,18 @@ export default function Settings() {
   );
 
   return (
-    <div className="max-w-lg space-y-6">
-      <div className="border-b border-m3-border pb-4">
-        <h1 className="text-2xl font-bold tracking-tight text-m3-text">Settings</h1>
-      </div>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <header>
+        <div className="eyebrow">Control room</div>
+        <h1 className="page-title mt-1">Settings</h1>
+        <p className="mt-2 text-sm text-m3-muted">Where the lineup comes from, how it streams, and how your TV apps see this tuner.</p>
+      </header>
+
+      <AccessPanel />
 
       {/* Status panel */}
-      <div className="border border-m3-border p-5 rounded-m3 shadow-m3 space-y-3">
-        <h2 className="text-sm font-semibold text-m3-primary border-b border-m3-border pb-2">
+      <div className="panel p-5 sm:p-6 space-y-3">
+        <h2 className="eyebrow">
           System Status
         </h2>
         <div className="flex justify-between items-center">
@@ -63,8 +93,8 @@ export default function Settings() {
       </div>
 
       {/* Config form */}
-      <form onSubmit={handleSave} className="border border-m3-border p-5 rounded-m3 shadow-m3 space-y-4">
-        <h2 className="text-sm font-semibold text-m3-primary border-b border-m3-border pb-2">
+      <form onSubmit={handleSave} className="panel p-5 sm:p-6 space-y-4">
+        <h2 className="eyebrow">
           Configuration
         </h2>
 
@@ -123,8 +153,8 @@ export default function Settings() {
       </form>
 
       {/* Sync panel */}
-      <div className="border border-m3-border p-5 rounded-m3 shadow-m3 space-y-3">
-        <h2 className="text-sm font-semibold text-m3-primary border-b border-m3-border pb-2">
+      <div className="panel p-5 sm:p-6 space-y-3">
+        <h2 className="eyebrow">
           Data Sync
         </h2>
         <p className="text-sm text-m3-muted">

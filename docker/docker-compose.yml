@@ -45,6 +45,13 @@ services:
       # - DEVICE_ID=104A7F3C
       # In bridge mode, the LAN IP media servers should use to reach RetroArr
       # - ADVERTISE_IP=192.168.1.50
+      # Access control. Reading the lineup/guide/streams is always open; changing
+      # settings, channels or plugins is allowed from your LAN only, unless you
+      # set ADMIN_TOKEN — then the dashboard asks for that key (Settings → Access).
+      # Set it whenever the dashboard is reachable from the internet.
+      # - ADMIN_TOKEN=change-me
+      # Behind a reverse proxy (nginx, Caddy, Traefik, Cloudflare Tunnel):
+      # - TRUST_PROXY=1
       # yt-dlp tuning
       - YTDLP_AUTO_UPDATE=true            # refresh yt-dlp on every start
       # - YTDLP_COOKIES=/app/server/db/cookies.txt

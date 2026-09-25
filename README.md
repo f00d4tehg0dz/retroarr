@@ -130,6 +130,8 @@ npm start                    # Serves both API and client on port 8888
 | `YTDLP_PLAYLIST_LIMIT` | `1000` | Max videos per playlist/channel source during a plugin sync |
 | `PLUGINS_DIR` | `./plugins` | Where dashboard-installed plugins are stored (Docker: on the db volume) |
 | `ENABLE_HDHR_DISCOVERY` / `ENABLE_SSDP` | `true` | Turn off a discovery responder |
+| `ADMIN_TOKEN` | — | Admin key for anything that changes the server (settings, channels, plugins, sync, reports, `/api/debug`). Unset = allowed from your local network only. **Set this if the dashboard is reachable from the internet**; enter it in the dashboard under Settings → Access. `PLUGIN_ADMIN_KEY` is accepted as an alias |
+| `TRUST_PROXY` | — | Set (e.g. `1`) when RetroArr sits behind a reverse proxy, so the real client IP is used. Without it, proxied requests can't make changes unless `ADMIN_TOKEN` is used |
 
 ---
 

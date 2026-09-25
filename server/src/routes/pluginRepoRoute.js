@@ -91,8 +91,8 @@ async function fetchPluginFile(filename) {
     }
   }
 
-  // Fall back to local
-  const localPath = path.join(REPO_DIR, filename);
+  // Fall back to local — basename so a manifest entry can never escape REPO_DIR
+  const localPath = path.join(REPO_DIR, path.basename(filename));
   if (fs.existsSync(localPath)) {
     return fs.readFileSync(localPath, 'utf8');
   }
@@ -177,6 +177,13 @@ router.post('/install', async (req, res) => {
       });
     }
 
+    // Manifest entries must be plain file names (no directories / traversal)
+    for (const f of [pluginMeta.configFile, pluginMeta.yamlFile]) {
+      if (typeof f !== 'string' || !/^[\w.-]+$/.test(f) || f.startsWith('.')) {
+        return res.status(400).json({ error: `Invalid plugin file name in manifest: ${f}` });
+      }
+    }
+
     // Fetch plugin config JSON
     const configContent = await fetchPluginFile(pluginMeta.configFile);
     const pluginConfig = JSON.parse(configContent);
@@ -195,7 +202,7 @@ router.post('/install', async (req, res) => {
 
     // Write the plugin config JSON to plugins/
     fs.writeFileSync(
-      path.join(PLUGINS_DIR, pluginMeta.configFile),
+      path.join(PLUGINS_DIR, path.basename(pluginMeta.configFile)),
       JSON.stringify(pluginConfig, null, 2),
       'utf8'
     );
@@ -258,7 +265,7 @@ router.post('/uninstall', async (req, res) => {
       return res.status(404).json({ error: `Plugin "${pluginId}" not found` });
     }
 
-    const configPath = path.join(PLUGINS_DIR, configFileName);
+    const configPath = path.join(PLUGINS_DIR, path.basename(configFileName));
     if (!fs.existsSync(configPath)) {
       return res.status(404).json({ error: `Plugin config file not found: ${configFileName}` });
     }
