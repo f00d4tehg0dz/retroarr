@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import SourcePlayer from '../player/SourcePlayer';
 
 export default function CrtTv({ videoId, seekSeconds, channelName, channelNumber }) {
   const [showStatic, setShowStatic] = useState(false);
@@ -22,17 +23,13 @@ export default function CrtTv({ videoId, seekSeconds, channelName, channelNumber
     if (prevVideoRef.current && prevVideoRef.current !== videoId) {
       setShowStatic(true);
       const timer = setTimeout(() => setShowStatic(false), 400);
-      setLockedSrc(
-        `https://www.youtube.com/embed/${videoId}?autoplay=1&start=${seekSeconds || 0}&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1`
-      );
+      setLockedSrc({ id: videoId, seek: seekSeconds || 0 });
       prevVideoRef.current = videoId;
       return () => clearTimeout(timer);
     }
 
     if (!lockedSrc) {
-      setLockedSrc(
-        `https://www.youtube.com/embed/${videoId}?autoplay=1&start=${seekSeconds || 0}&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1`
-      );
+      setLockedSrc({ id: videoId, seek: seekSeconds || 0 });
     }
 
     prevVideoRef.current = videoId;
@@ -75,15 +72,15 @@ export default function CrtTv({ videoId, seekSeconds, channelName, channelNumber
           >
             {/* 4:3 aspect ratio */}
             <div className="relative w-full" style={{ paddingBottom: '75%' }}>
-              {/* YouTube iframe */}
+              {/* Player: YouTube embed or Internet Archive video */}
               {lockedSrc && !showStatic && (
-                <iframe
-                  className="absolute inset-0 w-full h-full"
-                  src={lockedSrc}
+                <SourcePlayer
+                  key={lockedSrc.id}
+                  videoId={lockedSrc.id}
+                  seekSeconds={lockedSrc.seek}
+                  controls={false}
                   title={channelName || 'RetroArr TV'}
-                  allow="autoplay; encrypted-media"
-                  allowFullScreen
-                  style={{ border: 'none' }}
+                  className="absolute inset-0 w-full h-full"
                 />
               )}
 

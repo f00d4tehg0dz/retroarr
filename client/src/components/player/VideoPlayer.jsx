@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNowPlaying } from '../../hooks/useChannels';
+import SourcePlayer from './SourcePlayer';
 
 export default function VideoPlayer({ channelId }) {
   const { data: nowPlayingList } = useNowPlaying();
@@ -19,21 +20,18 @@ export default function VideoPlayer({ channelId }) {
     if (prevVideoRef.current === nowPlaying.videoId) return;
     prevVideoRef.current = nowPlaying.videoId;
 
-    setIframeSrc(
-      `https://www.youtube.com/embed/${nowPlaying.videoId}?autoplay=1&start=${nowPlaying.seekSeconds || 0}&controls=1&modestbranding=1&rel=0&iv_load_policy=3`
-    );
+    setIframeSrc({ id: nowPlaying.videoId, seek: nowPlaying.seekSeconds || 0 });
   }, [nowPlaying?.videoId]);
 
   return (
     <div className="relative w-full h-full bg-m3-black">
       {iframeSrc ? (
-        <iframe
-          className="absolute inset-0 w-full h-full"
-          src={iframeSrc}
+        <SourcePlayer
+          key={iframeSrc.id}
+          videoId={iframeSrc.id}
+          seekSeconds={iframeSrc.seek}
           title="RetroArr Live"
-          allow="autoplay; encrypted-media"
-          allowFullScreen
-          style={{ border: 'none' }}
+          className="absolute inset-0 w-full h-full"
         />
       ) : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 scanlines">

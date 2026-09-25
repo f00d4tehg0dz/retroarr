@@ -1,5 +1,12 @@
-// YouTube thumbnail for a video id (hqdefault always exists; maxres often not)
-export const thumb = (videoId, q = 'hqdefault') => (videoId ? `https://i.ytimg.com/vi/${videoId}/${q}.jpg` : null);
+import { isArchiveId, archiveThumbUrl } from './media';
+
+// Thumbnail for a video id: YouTube (hqdefault always exists; maxres often
+// not) or the Internet Archive item image
+export const thumb = (videoId, q = 'hqdefault') => {
+  if (!videoId) return null;
+  if (isArchiveId(videoId)) return archiveThumbUrl(videoId);
+  return `https://i.ytimg.com/vi/${videoId}/${q}.jpg`;
+};
 
 export function fmtMins(sec) {
   if (!sec || sec < 0) return '';

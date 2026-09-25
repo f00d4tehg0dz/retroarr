@@ -6,6 +6,7 @@ import LoadingSpinner from '../components/shared/LoadingSpinner';
 import Icon from '../components/shared/Icon';
 import Clock from '../components/shared/Clock';
 import { fmtMins, progress } from '../components/shared/thumb';
+import SourcePlayer from '../components/player/SourcePlayer';
 
 function useEpgXml() {
   return useQuery({
@@ -58,14 +59,12 @@ export default function EpgPage() {
           <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_380px]" style={{ maxHeight: '46vh' }}>
             <div className="relative aspect-video max-h-[46vh] bg-m3-black scanlines">
               {np?.videoId ? (
-                <iframe
+                <SourcePlayer
                   key={`${active.id}-${np.videoId}`}
-                  className="absolute inset-0 h-full w-full animate-tune-in"
-                  src={`https://www.youtube.com/embed/${np.videoId}?autoplay=1&start=${np.seekSeconds || 0}&controls=1&modestbranding=1&rel=0&iv_load_policy=3`}
+                  videoId={np.videoId}
+                  seekSeconds={np.seekSeconds || 0}
                   title={np.title}
-                  allow="autoplay; encrypted-media"
-                  allowFullScreen
-                  style={{ border: 'none' }}
+                  className="absolute inset-0 h-full w-full animate-tune-in"
                 />
               ) : (
                 <div className="absolute inset-0 grid place-items-center">

@@ -18,6 +18,7 @@
 
 const { spawn } = require('child_process');
 const config = require('../config');
+const { isArchiveId, archiveFileUrl } = require('../content/mediaSource');
 const { findOnPath, probeVersion } = require('../binaries');
 
 // Format selector per quality setting. Always ends in a bare "best" so that
@@ -227,6 +228,10 @@ function formatToInput(f) {
  * @returns {Promise<{inputs: Array<{url, headers}>, isDash: boolean, title: string, duration: number}>}
  */
 async function resolveYouTubeUrl(videoId, quality) {
+  // Internet Archive files are plain MP4 downloads — FFmpeg reads them directly
+  if (isArchiveId(videoId)) {
+    return { inputs: [{ url: archiveFileUrl(videoId), headers: {}, protocol: 'https', hasVideo: true, hasAudio: true }], isDash: false, title: '', duration: 0, isLive: false };
+  }
   quality = quality || config.streamQuality || '720p';
   const formatString = FORMAT_MAP[quality] || FORMAT_MAP['720p'];
   const caps = await probe();
@@ -356,6 +361,15 @@ async function resolveLiveUrl(videoId, quality, fallbackChannelUrl) {
  * @returns {Promise<boolean>}
  */
 async function validateVideo(videoId) {
+  if (isArchiveId(videoId)) {
+    try {
+      const res = await fetch(archiveFileUrl(videoId), { headers: { Range: 'bytes=0-1023' }, redirect: 'follow', signal: AbortSignal.timeout(20000) });
+      try { await res.body?.cancel(); } catch { /* ignore */ }
+      return !(res.status === 404 || res.status === 410 || res.status === 403); // network blips ≠ dead
+    } catch {
+      return true;
+    }
+  }
   const caps = await probe();
   try {
     const result = await runYtdlp(
