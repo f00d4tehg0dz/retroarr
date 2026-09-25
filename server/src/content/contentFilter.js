@@ -70,16 +70,19 @@ function minSecondsFor(category) {
 // and no English ones, e.g. "Josie y las Melodías").
 const NON_LATIN_RE = /[Ͱ-ϿЀ-ӿ֐-׿؀-ۿऀ-ॿ฀-๿ᄀ-ᇿ぀-ヿ㐀-䶿一-鿿가-힯]/;
 // Matched against the title with accents stripped ("capítulo" → "capitulo")
-const FOREIGN_MARKER_RE = /\b(espanol|castellano|latino|doblad[oa]|doblaje|capitulos?|episodios?|temporadas?|dublad[oa]|legendad[oa]|portugues|desenho|francais|vostfr|saison|deutsch|folge\s*\d+|staffel|synchro|italiano|sub ita|puntata|serie completa|completo|dibujos animados|caricaturas|peliculas?)\b/i;
+const FOREIGN_MARKER_RE = /\b(espanol|castellano|latino|doblad[oa]|doblaje|capitulos?|episodios?|temporadas?|dublad[oa]|legendad[oa]|portugues|desenho|francais|vostfr|saison|auf deutsch|deutsche? (fassung|synchro)|hd deutsch|folge\s*\d+|synchro|italiano|sub ita|puntata|serie completa|completo|dibujos animados|caricaturas|peliculas?)\b/i;
 const FOREIGN_MARKER_RAW_RE = /épisode|\bVF\b/;
 const FOREIGN_WORDS = new Set(['y', 'las', 'los', 'el', 'del', 'con', 'por', 'para', 'una', 'uno', 'su', 'sus', 'contra', 'les', 'des', 'du', 'et', 'aux', 'della', 'dei', 'gli', 'uma', 'dos', 'das', 'und', 'der', 'mit', 'ein', 'eine', 'nel', 'nella']);
 const ENGLISH_WORDS = new Set(['the', 'and', 'of', 'to', 'in', 'a', 'is', 'with', 'on', 'for', 'at', 'from', 'his', 'her', 'my', 'your', 'it', 'episode', 'season', 'part', 'full', 'meets', 'vs']);
 function nonEnglishReason(title, language, uploader) {
   if (language && !/^(en|und|zxx)\b/i.test(String(language))) return `non-English (${language})`;
   const t = String(title || '');
-  if (NON_LATIN_RE.test(t)) return 'non-English (script)';
+  // An English dub whose title also carries the original-language name
+  // ("【English Dubbed】 … 西游记", "ソニック … english dub") is English audio
+  const englishDub = /\b(english[- ]dub(bed)?|eng[- ]dub(bed)?|english version|in english|english audio)\b/i.test(t);
+  if (NON_LATIN_RE.test(t) && !englishDub) return 'non-English (script)';
   const plain = t.normalize('NFD').replace(/[̀-ͯ]/g, '');
-  if (FOREIGN_MARKER_RE.test(plain) || FOREIGN_MARKER_RAW_RE.test(t)) return 'non-English (dub/language marker)';
+  if (!englishDub && (FOREIGN_MARKER_RE.test(plain) || FOREIGN_MARKER_RAW_RE.test(t))) return 'non-English (dub/language marker)';
   // Dub channels usually say so in their name ("Caricaturas Latino", "Desenhos Dublados")
   const up = String(uploader || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   if (up && (FOREIGN_MARKER_RE.test(up) || NON_LATIN_RE.test(String(uploader)))) return 'non-English (dub channel)';
