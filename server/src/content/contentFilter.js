@@ -63,6 +63,33 @@ const MIN_SECONDS_OVERRIDES = Object.fromEntries(String(process.env.HOUSE_RULE_M
 function minSecondsFor(category) {
   return category in MIN_SECONDS_OVERRIDES ? MIN_SECONDS_OVERRIDES[category] : MIN_EPISODE_SECONDS;
 }
+// English only. A title is treated as non-English when yt-dlp reports a
+// non-English language, it uses a non-Latin script, it carries a dub/language
+// marker ("en español", "latino", "doblado", "VOSTFR", "Folge 3"), or it reads
+// as Spanish/Portuguese/French/Italian/German prose (2+ of their function words
+// and no English ones, e.g. "Josie y las Melodías").
+const NON_LATIN_RE = /[Ͱ-ϿЀ-ӿ֐-׿؀-ۿऀ-ॿ฀-๿ᄀ-ᇿ぀-ヿ㐀-䶿一-鿿가-힯]/;
+// Matched against the title with accents stripped ("capítulo" → "capitulo")
+const FOREIGN_MARKER_RE = /\b(espanol|castellano|latino|doblad[oa]|doblaje|capitulos?|episodios?|temporadas?|dublad[oa]|legendad[oa]|portugues|desenho|francais|vostfr|saison|deutsch|folge\s*\d+|staffel|synchro|italiano|sub ita|puntata|serie completa|completo|dibujos animados|caricaturas|peliculas?)\b/i;
+const FOREIGN_MARKER_RAW_RE = /épisode|\bVF\b/;
+const FOREIGN_WORDS = new Set(['y', 'las', 'los', 'el', 'del', 'con', 'por', 'para', 'una', 'uno', 'su', 'sus', 'contra', 'les', 'des', 'du', 'et', 'aux', 'della', 'dei', 'gli', 'uma', 'dos', 'das', 'und', 'der', 'mit', 'ein', 'eine', 'nel', 'nella']);
+const ENGLISH_WORDS = new Set(['the', 'and', 'of', 'to', 'in', 'a', 'is', 'with', 'on', 'for', 'at', 'from', 'his', 'her', 'my', 'your', 'it', 'episode', 'season', 'part', 'full', 'meets', 'vs']);
+function nonEnglishReason(title, language, uploader) {
+  if (language && !/^(en|und|zxx)\b/i.test(String(language))) return `non-English (${language})`;
+  const t = String(title || '');
+  if (NON_LATIN_RE.test(t)) return 'non-English (script)';
+  const plain = t.normalize('NFD').replace(/[̀-ͯ]/g, '');
+  if (FOREIGN_MARKER_RE.test(plain) || FOREIGN_MARKER_RAW_RE.test(t)) return 'non-English (dub/language marker)';
+  // Dub channels usually say so in their name ("Caricaturas Latino", "Desenhos Dublados")
+  const up = String(uploader || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (up && (FOREIGN_MARKER_RE.test(up) || NON_LATIN_RE.test(String(uploader)))) return 'non-English (dub channel)';
+  const words = plain.toLowerCase().match(/[a-z]+/g) || [];
+  const foreign = words.filter((w) => FOREIGN_WORDS.has(w)).length;
+  const english = words.filter((w) => ENGLISH_WORDS.has(w)).length;
+  if (foreign >= 2 && english === 0) return 'non-English (title language)';
+  return null;
+}
+
 function houseRule(title, duration, category) {
   if (SHORT_FORM_CATEGORIES.includes(category)) return null;
   if (COMPILATION_RE.test(String(title || ''))) return 'compilation';
@@ -253,6 +280,8 @@ function evaluate(video, ctx = {}) {
   }
 
   // House rules: no compilations, nothing under 15 minutes
+  const foreign = nonEnglishReason(title, video.language, video.uploader || video.channel);
+  if (foreign) return { keep: false, reason: foreign, score: 999, signals: ['non-english'] };
   const house = houseRule(title, duration, category);
   if (house) return { keep: false, reason: house, score: 999, signals: ['house-rule'] };
 
@@ -436,6 +465,7 @@ module.exports = {
   MIN_SECONDS_OVERRIDES,
   minSecondsFor,
   houseRule,
+  nonEnglishReason,
   evaluate,
   filterVideos,
   mentionsShow,
