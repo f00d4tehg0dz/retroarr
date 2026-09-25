@@ -45,9 +45,10 @@ export default function PluginStore() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-end justify-between border-b border-m3-border pb-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-m3-text">
+          <div className="eyebrow">Add-ons</div>
+          <h1 className="page-title mt-1">
             Plugin Store
           </h1>
           <p className="text-m3-muted text-sm mt-1">
@@ -116,7 +117,7 @@ export default function PluginStore() {
 
           {/* Plugin cards */}
           {filtered.length === 0 ? (
-            <div className="border border-m3-border p-8 rounded-m3 text-center">
+            <div className="panel p-8 text-center">
               <div className="text-m3-muted text-sm">No plugins match your search.</div>
             </div>
           ) : (
@@ -129,18 +130,16 @@ export default function PluginStore() {
                 return (
                   <div
                     key={plugin.id}
-                    className={`border border-m3-border rounded-m3 p-5 flex flex-col transition-all hover:shadow-m3 ${
-                      plugin.installed ? 'bg-m3-primaryContainer/5 border-m3-primary/20' : 'bg-m3-surface'
-                    }`}
+                    className={`card flex flex-col !p-5 hover:-translate-y-0.5 ${plugin.installed ? '!border-m3-primary/40' : ''}`}
                   >
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl leading-none">{plugin.icon || '📦'}</span>
+                        <span className="grid h-11 w-11 place-items-center rounded-xl border border-m3-border bg-black/30 text-2xl leading-none">{plugin.icon || '📺'}</span>
                         <div>
-                          <div className="font-semibold text-m3-text text-sm">{plugin.name}</div>
-                          <div className="text-xs text-m3-muted">
-                            CH {plugin.channelNumber}
+                          <div className="font-display text-base font-bold text-m3-text">{plugin.name}</div>
+                          <div className="mt-0.5 flex items-center gap-1.5 text-xs text-m3-muted">
+                            <span className="ch-num !h-5 !min-w-0 text-[10px]">{plugin.channelNumber}</span>
                             {plugin.author && <> · by {plugin.author}</>}
                           </div>
                         </div>
@@ -163,7 +162,7 @@ export default function PluginStore() {
                         {plugin.tags.map((tag) => (
                           <span
                             key={tag}
-                            className="text-xs text-m3-muted bg-m3-surfaceContainer px-2 py-0.5 rounded-full"
+                            className="rounded-full border border-m3-border px-2 py-0.5 text-[11px] text-m3-muted"
                           >
                             {tag}
                           </span>
@@ -201,7 +200,7 @@ export default function PluginStore() {
           {installed?.length > 0 && (
             <div className="mt-8 space-y-3">
               <div className="border-b border-m3-border pb-2">
-                <h2 className="text-lg font-bold tracking-tight text-m3-text">
+                <h2 className="text-2xl font-bold tracking-tight text-m3-text">
                   Installed Plugins
                 </h2>
                 <p className="text-m3-muted text-sm mt-1">

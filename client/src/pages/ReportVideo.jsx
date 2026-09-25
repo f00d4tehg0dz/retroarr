@@ -33,15 +33,16 @@ export default function ReportVideo() {
   }
 
   return (
-    <div className="max-w-lg space-y-6">
-      <div className="border-b border-m3-border pb-4">
-        <h1 className="text-2xl font-bold tracking-tight text-m3-text">
+    <div className="mx-auto max-w-2xl space-y-6">
+      <header>
+        <div className="eyebrow">Viewer mail</div>
+        <h1 className="page-title mt-1">
           Report Broken Video
         </h1>
         <p className="text-m3-muted text-sm mt-1">
           Flag deleted, private, or broken content for removal.
         </p>
-      </div>
+      </header>
 
       {submitted && (
         <div className="border border-m3-success/30 bg-m3-successContainer/10 p-4 rounded-m3-sm">
@@ -53,7 +54,7 @@ export default function ReportVideo() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="border border-m3-border p-5 rounded-m3 shadow-m3 space-y-4">
+      <form onSubmit={handleSubmit} className="panel p-5 sm:p-6 space-y-4">
         <div>
           <label className="label">YouTube Video URL or ID *</label>
           <input

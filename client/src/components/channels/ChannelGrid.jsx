@@ -1,72 +1,18 @@
 import ChannelCard from './ChannelCard';
-import useChannelStore from '../../store/useChannelStore';
 
-const DECADES = ['60s', '70s', '80s', '90s', '00s', '10s', '20s'];
-const CATEGORIES = [
-  'Shows', 'Sitcoms', 'Cartoons', 'Movies', 'Commercials',
-  'Drama', 'Specials', 'Theme Songs', 'Trailers', 'Bumpers', 'Kids',
-  'Documentary', 'Talk TV',
-];
-
-export default function ChannelGrid({ channels, nowPlayingMap = {} }) {
-  const { selectedDecade, selectedCategory } = useChannelStore();
-
-  const gridChannels = channels.filter((c) => !c.isPlugin);
-  const decades = selectedDecade ? [selectedDecade] : DECADES;
-
+// Responsive tile grid for a list of channels.
+export default function ChannelGrid({ channels, nowPlayingMap = {}, empty = 'No channels match these filters.' }) {
+  if (!channels.length) {
+    return <div className="panel p-8 text-center text-sm text-m3-muted">{empty}</div>;
+  }
   return (
-    <div className="space-y-4">
-      {/* Category header row */}
-      <div
-        className="grid gap-1"
-        style={{ gridTemplateColumns: `56px repeat(${CATEGORIES.length}, 1fr)` }}
-      >
-        <div />
-        {CATEGORIES.map((cat) => (
-          <div
-            key={cat}
-            className={`text-xs font-medium pb-1 border-b text-center truncate px-0.5 ${
-              selectedCategory === cat
-                ? 'text-m3-primary border-m3-primary'
-                : 'text-m3-muted border-m3-borderSubtle'
-            }`}
-          >
-            {cat}
-          </div>
+    <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+      {channels
+        .slice()
+        .sort((a, b) => a.channelNumber - b.channelNumber)
+        .map((ch) => (
+          <ChannelCard key={ch.id} channel={ch} nowPlaying={nowPlayingMap[ch.id]?.nowPlaying} />
         ))}
-      </div>
-
-      {/* Decade rows */}
-      {decades.map((decade) => {
-        const decadeChannels = gridChannels.filter((c) => c.decade === decade);
-        const cats = selectedCategory
-          ? CATEGORIES.filter((c) => c === selectedCategory)
-          : CATEGORIES;
-        const colCount = selectedCategory ? 1 : CATEGORIES.length;
-
-        return (
-          <div
-            key={decade}
-            className="grid gap-1"
-            style={{ gridTemplateColumns: `56px repeat(${colCount}, 1fr)` }}
-          >
-            {/* Decade label */}
-            <div className="flex items-start pt-2 pl-1">
-              <span className="text-m3-primary font-bold text-sm">{decade}</span>
-            </div>
-
-            {/* Channel cards */}
-            {cats.map((category) => {
-              const ch = decadeChannels.find((c) => c.category === category);
-              if (!ch) return (
-                <div key={category} className="border border-m3-borderSubtle rounded-m3-sm opacity-20 min-h-[80px]" />
-              );
-              const nowPlaying = nowPlayingMap[ch.id]?.nowPlaying;
-              return <ChannelCard key={ch.id} channel={ch} nowPlaying={nowPlaying} />;
-            })}
-          </div>
-        );
-      })}
     </div>
   );
 }

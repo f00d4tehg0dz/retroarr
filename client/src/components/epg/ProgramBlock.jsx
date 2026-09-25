@@ -1,51 +1,34 @@
-import { useState } from 'react';
+const fmt = (t) => new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
-export default function ProgramBlock({ program, widthPx, isActive, onPlay }) {
-  const [showTooltip, setShowTooltip] = useState(false);
-
+// One listing in the guide. "Now" listings get the marigold treatment, like the
+// highlighted box in a printed TV Guide.
+export default function ProgramBlock({ program, widthPx, isNow, isActive, isLive, startsBeforeWindow, onPlay }) {
   const durationMin = Math.round((program.end - program.start) / 60000);
-  const startTime = new Date(program.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const endTime = new Date(program.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const tip = `${program.title}\n${isLive ? 'Live 24/7' : `${fmt(program.start)} – ${fmt(program.end)} · ${durationMin} min`}${program.description ? `\n\n${program.description}` : ''}`;
 
   return (
-    <div
-      className={`relative h-full border-r cursor-pointer overflow-hidden transition-colors group rounded-sm ${
-        isActive
-          ? 'border-m3-primary/40 bg-m3-primaryContainer/25'
-          : 'border-m3-borderSubtle bg-m3-surfaceContainer hover:bg-m3-primaryContainer/15'
-      }`}
-      style={{ width: widthPx, minWidth: 30 }}
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
+    <button
+      type="button"
       onClick={onPlay}
+      title={tip}
+      className={`group flex h-full w-full min-w-0 flex-col justify-center overflow-hidden rounded-lg border px-2.5 text-left transition-colors ${
+        isActive
+          ? 'border-m3-primary bg-m3-primary text-m3-onPrimary'
+          : isNow
+            ? 'border-m3-primary/50 bg-m3-primary/15 hover:bg-m3-primary/25'
+            : 'border-m3-border bg-m3-surfaceContainer/80 hover:border-m3-muted/60 hover:bg-m3-surfaceHigh'
+      }`}
     >
-      <div className="px-2 py-1 h-full flex flex-col justify-center gap-0.5 min-w-0">
-        <div className="flex items-center gap-1">
-          {isActive && (
-            <span className="text-m3-primary text-xs shrink-0">▶</span>
-          )}
-          <span className={`text-xs truncate font-medium ${isActive ? 'text-m3-primary' : 'text-m3-text'}`}>
-            {program.title}
-          </span>
-        </div>
-        {widthPx > 100 && (
-          <span className="text-m3-muted text-xs truncate">
-            {startTime} · {durationMin}m
-          </span>
-        )}
-      </div>
-
-      {showTooltip && (
-        <div className="absolute left-0 top-full z-50 bg-m3-surfaceHigh border border-m3-border shadow-m3-md p-3 text-xs w-56 mt-0.5 pointer-events-none rounded-m3-sm">
-          <div className="font-semibold text-m3-text mb-1">{program.title}</div>
-          {program.description && (
-            <div className="text-m3-muted line-clamp-3 mb-2">{program.description}</div>
-          )}
-          <div className="text-m3-primary font-medium text-xs">
-            {startTime} – {endTime} · {durationMin}m
-          </div>
-        </div>
+      <span className={`flex items-center gap-1.5 truncate text-[13px] font-semibold ${isActive ? '' : 'text-m3-text'}`}>
+        {startsBeforeWindow && <span className="opacity-60">‹</span>}
+        {isLive && <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${isActive ? 'bg-m3-onPrimary' : 'bg-tv-onair animate-on-air'}`} />}
+        <span className="truncate">{program.title}</span>
+      </span>
+      {widthPx > 110 && (
+        <span className={`truncate font-mono text-[10px] tabular-nums ${isActive ? 'opacity-70' : 'text-m3-muted'}`}>
+          {isLive ? 'LIVE · 24/7' : `${fmt(program.start)} · ${durationMin}m`}
+        </span>
       )}
-    </div>
+    </button>
   );
 }

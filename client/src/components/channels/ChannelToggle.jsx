@@ -11,20 +11,15 @@ export default function ChannelToggle({ channel }) {
 
   return (
     <button
+      type="button"
+      role="switch"
+      aria-checked={!!channel.enabled}
       onClick={handleToggle}
       disabled={isPending}
-      title={channel.enabled ? 'Disable channel' : 'Enable channel'}
-      className={`w-9 h-5 rounded-full relative transition-all
-        ${channel.enabled
-          ? 'bg-m3-primary'
-          : 'bg-m3-border'
-        }
-        ${isPending ? 'opacity-40' : ''}`}
+      title={channel.enabled ? 'Channel on — click to turn off' : 'Channel off — click to turn on'}
+      className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${channel.enabled ? 'bg-m3-primary' : 'bg-m3-border'} ${isPending ? 'opacity-40' : ''}`}
     >
-      <span
-        className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all shadow-sm
-          ${channel.enabled ? 'left-[calc(100%-18px)]' : 'left-0.5'}`}
-      />
+      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${channel.enabled ? 'left-[18px]' : 'left-0.5'}`} />
     </button>
   );
 }

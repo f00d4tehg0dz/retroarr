@@ -4,6 +4,14 @@ export default function CrtTv({ videoId, seekSeconds, channelName, channelNumber
   const [showStatic, setShowStatic] = useState(false);
   const prevVideoRef = useRef(videoId);
   const [lockedSrc, setLockedSrc] = useState(null);
+  const [osd, setOsd] = useState(true);
+
+  // Show the green on-screen channel number for 3s after every tune
+  useEffect(() => {
+    setOsd(true);
+    const t = setTimeout(() => setOsd(false), 3000);
+    return () => clearTimeout(t);
+  }, [channelNumber]);
 
   useEffect(() => {
     if (!videoId) {
@@ -33,16 +41,16 @@ export default function CrtTv({ videoId, seekSeconds, channelName, channelNumber
   return (
     <div className="flex flex-col items-center justify-center h-full" style={{ padding: '3%' }}>
       {/* TV Unit — all sizing is relative so it scales with its container */}
-      <div className="relative w-full" style={{ maxWidth: '90%' }}>
+      <div className="relative w-full" style={{ maxWidth: 'min(92%, calc((100dvh - 9rem) * 1.2))' }}>
 
         {/* TV Outer Shell — padding as % keeps bezel proportional */}
         <div
           className="relative rounded-[3%]"
           style={{
-            background: '#1a1a1a',
-            border: '0.5vw solid #0d0d0d',
+            background: 'linear-gradient(180deg,#26222c 0%,#17151c 55%,#121016 100%)',
+            border: '0.5vw solid #0b0a0e',
             padding: '2.5% 3% 1.5%',
-            boxShadow: 'inset 0 0 2vw rgba(0,0,0,0.8), 0 0.6vw 0 #000, 0 0.8vw 3vw rgba(0,0,0,0.6)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 2vw rgba(0,0,0,0.7), 0 0.6vw 0 #000, 0 2vw 6vw -1vw rgba(255,181,71,0.18)',
           }}
         >
           {/* Top vents — repeatable bars that fill available width */}
@@ -93,6 +101,14 @@ export default function CrtTv({ videoId, seekSeconds, channelName, channelNumber
                 </div>
               )}
 
+              {/* On-screen channel number, shown briefly after tuning */}
+              {osd && channelNumber && (
+                <div className="absolute right-[4%] top-[5%] z-30 font-mono font-bold text-[#7CFF8A] tabular-nums"
+                  style={{ fontSize: 'clamp(1.2rem, 4vw, 3.4rem)', textShadow: '0 0 12px rgba(124,255,138,.8), 2px 2px 0 #000' }}>
+                  {String(channelNumber).padStart(2, '0')}
+                </div>
+              )}
+
               {/* Static / channel switch effect */}
               {showStatic && (
                 <div className="absolute inset-0 z-20 crt-static" />
@@ -119,7 +135,7 @@ export default function CrtTv({ videoId, seekSeconds, channelName, channelNumber
               <div
                 className="absolute inset-0 z-10 pointer-events-none"
                 style={{
-                  background: 'radial-gradient(ellipse at center, rgba(168,199,250,0.03) 0%, transparent 70%)',
+                  background: 'radial-gradient(ellipse at center, rgba(255,181,71,0.04) 0%, transparent 70%)',
                 }}
               />
             </div>
@@ -139,13 +155,13 @@ export default function CrtTv({ videoId, seekSeconds, channelName, channelNumber
               />
               <div className="font-medium tracking-wide"
                 style={{ color: '#444', fontSize: 'clamp(0.5rem, 0.8vw, 0.75rem)' }}>
-                RetroArr
+                RETROARR · COLOR TV
               </div>
             </div>
             {channelNumber && (
               <div className="flex items-center" style={{ gap: 'clamp(4px, 0.5vw, 8px)' }}>
-                <span className="text-m3-primary font-bold"
-                  style={{ fontSize: 'clamp(0.6rem, 1vw, 0.9rem)' }}>
+                <span className="font-mono font-bold text-m3-primary tabular-nums"
+                  style={{ fontSize: 'clamp(0.6rem, 1vw, 0.9rem)', textShadow: '0 0 8px rgba(255,181,71,.6)' }}>
                   CH {channelNumber}
                 </span>
                 <span className="font-medium"

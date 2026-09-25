@@ -2,103 +2,172 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────────────────────────────────────────
+   RetroArr — "Late Night Broadcast"
+   Modern product UI with a wink at the TV Guide / cable-box era:
+   warm ink surfaces, marigold listings type, phosphor accents, a whisper of
+   scanline + grain. Retro-ish, never costume.
+   ───────────────────────────────────────────────────────────────────────── */
+
 @layer base {
+  :root {
+    --ink: #0D0C11;
+    --marigold: #FFB547;
+    --onair: #FF4D45;
+    --phosphor: #6EE7D2;
+  }
+
+  html { color-scheme: dark; }
+
   body {
     @apply bg-m3-bg text-m3-text font-sans;
     -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    /* soft broadcast glow in the corners of the room */
+    background-image:
+      radial-gradient(1200px 600px at 110% -10%, rgba(255,181,71,0.07), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(110,231,210,0.05), transparent 60%);
+    background-attachment: fixed;
   }
 
-  ::-webkit-scrollbar        { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track  { @apply bg-m3-surface; }
-  ::-webkit-scrollbar-thumb  { @apply bg-m3-muted rounded-full; }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-m3-textSecondary; }
+  /* barely-there film grain over the whole app */
+  body::after {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 100;
+    opacity: .035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
 
-  ::selection {
-    background: #A8C7FA;
-    color: #062E6F;
+  h1, h2, h3 { @apply font-display; letter-spacing: -0.02em; }
+
+  :focus-visible { outline: 2px solid var(--marigold); outline-offset: 2px; border-radius: 8px; }
+
+  ::-webkit-scrollbar        { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track  { background: transparent; }
+  ::-webkit-scrollbar-thumb  { background: #2E2A38; border-radius: 999px; border: 3px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: #4A4456; background-clip: padding-box; border: 3px solid transparent; }
+
+  ::selection { background: var(--marigold); color: #1C1206; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
   }
 }
 
 @layer components {
-  /* ── Cards ─────────────────────────────────── */
+  /* ── Surfaces ─────────────────────────────────────────────────────────── */
   .card {
-    @apply bg-m3-surface border border-m3-border p-4 rounded-m3;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.24);
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    @apply bg-m3-surface/80 border border-m3-border p-4 rounded-m3 shadow-m3;
+    backdrop-filter: blur(8px);
+    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
   }
-  .card:hover {
-    box-shadow: 0 3px 6px rgba(0,0,0,0.3), 0 3px 6px rgba(0,0,0,0.22);
-    transform: translateY(-1px);
-  }
+  .card:hover { @apply border-m3-muted/40 shadow-m3-md; }
 
-  /* ── Buttons ────────────────────────────────── */
+  .panel { @apply bg-m3-surface/80 border border-m3-border rounded-m3 shadow-m3; backdrop-filter: blur(8px); }
+
+  /* page header: eyebrow + big display title */
+  .eyebrow { @apply font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-m3-primary; }
+  .page-title { @apply font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-m3-text; }
+
+  /* ── Buttons ──────────────────────────────────────────────────────────── */
   .btn-primary {
-    @apply bg-m3-primary text-m3-onPrimary border border-m3-primary
-           px-5 py-2.5 text-sm font-semibold tracking-wide rounded-m3-sm;
-    transition: box-shadow 0.2s, transform 0.2s, background-color 0.2s;
+    @apply inline-flex items-center justify-center gap-2 bg-m3-primary text-m3-onPrimary
+           px-5 py-2.5 text-sm font-semibold rounded-full;
+    box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 6px 20px -8px rgba(255,181,71,.6);
+    transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
   }
-  .btn-primary:hover {
-    @apply bg-m3-primary/90;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-    transform: translateY(-1px);
-  }
-  .btn-primary:active {
-    transform: translateY(0);
-    box-shadow: none;
-  }
+  .btn-primary:hover  { filter: brightness(1.06); transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); filter: brightness(.96); }
+  .btn-primary:disabled { @apply opacity-50 cursor-not-allowed; transform: none; }
 
   .btn-secondary {
-    @apply bg-m3-surfaceContainer text-m3-text border border-m3-border
-           px-5 py-2.5 text-sm font-semibold tracking-wide rounded-m3-sm;
-    transition: box-shadow 0.2s, transform 0.2s, background-color 0.2s;
+    @apply inline-flex items-center justify-center gap-2 bg-m3-surfaceContainer text-m3-text border border-m3-border
+           px-5 py-2.5 text-sm font-semibold rounded-full;
+    transition: border-color .15s, background-color .15s, transform .15s;
   }
-  .btn-secondary:hover {
-    @apply bg-m3-surfaceHigh border-m3-primary/40;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    transform: translateY(-1px);
-  }
-  .btn-secondary:active {
-    transform: translateY(0);
-    box-shadow: none;
-  }
+  .btn-secondary:hover  { @apply bg-m3-surfaceHigh border-m3-primary/50; transform: translateY(-1px); }
+  .btn-secondary:active { transform: translateY(0); }
+  .btn-secondary:disabled { @apply opacity-50 cursor-not-allowed; transform: none; }
 
   .btn-danger {
-    @apply bg-m3-errorContainer text-m3-error border border-m3-error/30
-           px-5 py-2.5 text-sm font-semibold tracking-wide rounded-m3-sm;
-    transition: box-shadow 0.2s, transform 0.2s;
+    @apply inline-flex items-center justify-center gap-2 bg-m3-errorContainer/60 text-m3-error border border-m3-error/40
+           px-5 py-2.5 text-sm font-semibold rounded-full;
+    transition: background-color .15s, transform .15s;
   }
-  .btn-danger:hover {
-    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-    transform: translateY(-1px);
-  }
+  .btn-danger:hover { @apply bg-m3-errorContainer; transform: translateY(-1px); }
 
-  /* ── Inputs ─────────────────────────────────── */
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-m3-textSecondary rounded-full;
+    transition: background-color .15s, color .15s;
+  }
+  .btn-ghost:hover { @apply bg-m3-surfaceContainer text-m3-text; }
+
+  /* ── Chips (filters) ──────────────────────────────────────────────────── */
+  .chip {
+    @apply inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-full border
+           border-m3-border bg-m3-surface/60 text-m3-textSecondary;
+    transition: all .15s ease;
+  }
+  .chip:hover { @apply border-m3-primary/50 text-m3-text; }
+  .chip-active { @apply bg-m3-primary text-m3-onPrimary border-m3-primary; }
+  .chip-active:hover { @apply text-m3-onPrimary; }
+
+  /* ── Inputs ───────────────────────────────────────────────────────────── */
   .input {
-    @apply bg-m3-bg border border-m3-border text-m3-text
-           px-3 py-2.5 text-sm w-full rounded-m3-sm;
+    @apply bg-m3-bg/70 border border-m3-border text-m3-text px-3.5 py-2.5 text-sm w-full rounded-m3-sm;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color .15s, box-shadow .15s;
   }
-  .input:focus {
-    border-color: #A8C7FA;
-    box-shadow: 0 0 0 2px rgba(168,199,250,0.2);
+  .input:focus { border-color: var(--marigold); box-shadow: 0 0 0 3px rgba(255,181,71,.18); }
+  .label { @apply block font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-m3-muted mb-1.5; }
+
+  /* ── Badges ───────────────────────────────────────────────────────────── */
+  .badge-online, .badge-offline, .badge-error {
+    @apply inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border;
+  }
+  .badge-online  { @apply text-m3-success border-m3-success/30 bg-m3-successContainer/30; }
+  .badge-offline { @apply text-m3-muted border-m3-border bg-m3-surfaceContainer; }
+  .badge-error   { @apply text-m3-error border-m3-error/30 bg-m3-errorContainer/30; }
+
+  /* ON AIR tally light */
+  .on-air {
+    @apply inline-flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.16em]
+           text-white bg-tv-onair px-2 py-0.5 rounded-md;
+    box-shadow: 0 0 14px rgba(255,77,69,.45);
+  }
+  .on-air::before { content: ''; @apply w-1.5 h-1.5 rounded-full bg-white animate-on-air; }
+  .off-air { @apply inline-flex items-center font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-m3-muted border border-m3-border px-2 py-0.5 rounded-md; }
+
+  /* cable-box channel number: LED-ish mono digits in a little window */
+  .ch-num {
+    @apply inline-flex items-center justify-center font-mono font-bold tabular-nums text-m3-primary
+           bg-black/40 border border-m3-border rounded-md px-1.5 min-w-[2.5rem] h-6 text-xs;
+    text-shadow: 0 0 8px rgba(255,181,71,.55);
   }
 
-  .label {
-    @apply block text-m3-muted text-xs tracking-wide mb-1.5 font-medium;
-  }
+  /* listings rule — the dotted line between a title and its time in a TV Guide */
+  .leader { @apply flex-1 border-b border-dotted border-m3-border mx-2 translate-y-[-3px]; }
 
-  /* ── Badges ─────────────────────────────────── */
-  .badge-online {
-    @apply inline-flex items-center gap-1.5 text-xs font-medium tracking-wide
-           text-m3-success border border-m3-success/40 px-2.5 py-0.5 rounded-full;
+  /* CRT treatments for screens and hero art */
+  .scanlines { position: relative; }
+  .scanlines::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px);
+    mix-blend-mode: multiply;
   }
-  .badge-offline {
-    @apply inline-flex items-center gap-1.5 text-xs font-medium tracking-wide
-           text-m3-muted border border-m3-muted/40 px-2.5 py-0.5 rounded-full;
+  .screen-glow { box-shadow: 0 0 0 1px rgba(255,255,255,.04), 0 30px 80px -20px rgba(255,181,71,.25); }
+
+  /* SMPTE-style colour bar strip (thin, decorative) */
+  .smpte {
+    height: 4px;
+    background: linear-gradient(90deg,
+      #c0c0c0 0 14.28%, #c0c000 14.28% 28.56%, #00c0c0 28.56% 42.84%, #00c000 42.84% 57.12%,
+      #c000c0 57.12% 71.4%, #c00000 71.4% 85.68%, #0000c0 85.68% 100%);
+    opacity: .75;
   }
-  .badge-error {
-    @apply inline-flex items-center gap-1.5 text-xs font-medium tracking-wide
-           text-m3-error border border-m3-error/40 px-2.5 py-0.5 rounded-full;
-  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .mask-fade-r { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
 }

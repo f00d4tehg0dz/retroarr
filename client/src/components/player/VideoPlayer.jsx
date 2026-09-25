@@ -36,8 +36,8 @@ export default function VideoPlayer({ channelId }) {
           style={{ border: 'none' }}
         />
       ) : (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-          <div className="text-m3-primary font-bold text-lg animate-pulse">NO SIGNAL</div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 scanlines">
+          <div className="font-mono text-sm font-bold tracking-[0.3em] text-m3-primary animate-on-air">NO SIGNAL</div>
           <div className="text-m3-muted text-xs">
             {nowPlayingList ? 'No video data for this channel' : 'Loading...'}
           </div>
