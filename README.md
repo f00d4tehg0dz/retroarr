@@ -11,18 +11,21 @@ RetroArr builds a 90+ channel grid (7 decades x 13 categories) that plays 24/7 l
 
 ## Features
 
-- **90+ Live Channels** — 7 decades (60s through 20s) x 13 categories (Cartoons, Sitcoms, Movies, Comedy, Drama, and more)
-- **HDHomeRun Emulation** — Detected automatically by Plex, Jellyfin, and Emby as a network tuner via SSDP
-- **M3U + XMLTV EPG** — Standard playlist and electronic program guide compatible with any IPTV player
-- **Virtual Clock** — Seeded shuffle algorithm ensures every viewer sees the same thing at the same time
-- **24-hour EPG** — Auto-generated TV guide synced to the virtual clock
-- **Live Channels** — 24/7 YouTube live streams relayed as always-on channels (no clock, no schedule — it's just on)
-- **Show-only Playlists** — A content filter keeps every playlist to the show: reactions, reviews, top-10s, Shorts, trailers and fan edits are dropped at ingest and on sync
-- **Plugin System** — Add custom channels beyond the grid with community-contributed or your own YAML playlists
-- **Plugin Repository** — Browse and install community channel packs directly from the dashboard
-- **Web Dashboard** — Manage channels, toggle categories, view the TV guide, report broken videos, and install plugins
-- **TV Mode** — Full-screen CRT television UI in the browser with channel surfing (mostly demo purposes)
-- **Docker Ready** — Single container with FFmpeg and yt-dlp included
+- **90+ Live Channels**: 7 decades (60s through 20s) x 13 categories (Cartoons, Sitcoms, Movies, Comedy, Drama, and more)
+- **HDHomeRun Emulation**: Detected automatically by Plex, Jellyfin, and Emby as a network tuner via SSDP
+- **M3U + XMLTV EPG**: Standard playlist and electronic program guide compatible with any IPTV player
+- **Virtual Clock**: Seeded shuffle algorithm ensures every viewer sees the same thing at the same time
+- **24-hour EPG**: Auto-generated TV guide synced to the virtual clock
+- **Live Channels**: 24/7 YouTube live streams relayed as always-on channels (no clock, no schedule, it's just on)
+- **Show-only Playlists**: Reactions, reviews, top-10s, Shorts, trailers and fan edits get filtered out at import and on every sync
+- **Internet Archive**: Shows YouTube doesn't have (Burns and Allen, Ozzie and Harriet, Space Patrol, What's My Line?) stream straight from archive.org, mixed into the same channels
+- **Themed Channels**: Nick at Nite, Fox Kids, Kids WB, Disney Afternoon, Classic Game Shows, MST3K, G4 and more on 92 to 107
+- **House Rules**: English only, no compilations, and nothing under 15 minutes (cartoons and kids shows can go shorter, see `HOUSE_RULE_MIN_MINUTES`)
+- **Plugin System**: Add custom channels beyond the grid with community-contributed or your own YAML playlists
+- **Plugin Repository**: Browse and install community channel packs directly from the dashboard
+- **Web Dashboard**: Manage channels, toggle categories, view the TV guide, report broken videos, and install plugins
+- **TV Mode**: Full-screen CRT television UI in the browser with channel surfing (mostly demo purposes)
+- **Docker Ready**: Single container with FFmpeg and yt-dlp included
 
 ---
 
@@ -30,7 +33,7 @@ RetroArr builds a 90+ channel grid (7 decades x 13 categories) that plays 24/7 l
 
 ### Option 1: Docker (Recommended)
 
-The image ships with everything the streams need: Node 22, FFmpeg and yt-dlp (which refreshes itself on every container start, so YouTube changes don't strand you on a stale build). It runs on `linux/amd64` and `linux/arm64` — Synology, Unraid, TrueNAS, Proxmox, Raspberry Pi 4/5.
+The image ships with everything the streams need: Node 22, FFmpeg and yt-dlp (which refreshes itself on every container start, so YouTube changes don't strand you on a stale build). It runs on `linux/amd64` and `linux/arm64` (Synology, Unraid, TrueNAS, Proxmox, Raspberry Pi 4/5).
 
 Create a `.env` file:
 
@@ -69,19 +72,19 @@ docker compose up -d
 docker compose logs -f     # watch the first sync populate the channels
 ```
 
-> **Linux / NAS:** keep `network_mode: host`. Compose will refuse to start if you have **both** `network_mode: host` and a `ports:` list — pick one.
+> **Linux / NAS:** keep `network_mode: host`. Compose will refuse to start if you have **both** `network_mode: host` and a `ports:` list. Pick one.
 >
 > **Windows / macOS (Docker Desktop):** host networking isn't available. Remove `network_mode: host`, uncomment `ports`, and add the tuner manually in your media server using `http://<your-ip>:8888`.
 >
-> **Synology Container Manager:** use *Project → Create* and paste the compose file, or when creating the container manually pick **"Use the same network as Docker Host"**. If DSM already occupies UDP 1900, RetroArr just logs a warning — HDHomeRun discovery uses UDP 65001 and keeps working.
+> **Synology Container Manager:** use *Project → Create* and paste the compose file, or when creating the container manually pick **"Use the same network as Docker Host"**. If DSM already occupies UDP 1900, RetroArr just logs a warning. HDHomeRun discovery uses UDP 65001 and keeps working.
 
 The dashboard is available at `http://localhost:8888`. First boot runs a sync in the background; channels appear in Plex/Jellyfin once they have videos (usually a minute or two).
 
 ### Option 2: Manual Setup
 
-Prerequisites: Node.js 20+ (22+ recommended — yt-dlp can use it as its JavaScript runtime), FFmpeg, yt-dlp (any of: on your PATH, `pip install yt-dlp`, or the binary dropped in `./scripts`)
+Prerequisites: Node.js 20+ (22+ recommended, yt-dlp can use it as its JavaScript runtime), FFmpeg, yt-dlp (any of: on your PATH, `pip install yt-dlp`, or the binary dropped in `./scripts`)
 
-RetroArr auto-detects `ffmpeg`, `ffprobe` and `yt-dlp` on Windows, macOS and Linux. It looks in `./scripts`, `./bin`, `./server/bin`, `/usr/local/bin` and your `PATH`, and falls back to `python -m yt_dlp`. You only need `YTDLP_PATH` / `FFMPEG_PATH` if your binaries live somewhere unusual — and a path that doesn't exist on the current OS is ignored with a warning rather than breaking playback.
+RetroArr auto-detects `ffmpeg`, `ffprobe` and `yt-dlp` on Windows, macOS and Linux. It looks in `./scripts`, `./bin`, `./server/bin`, `/usr/local/bin` and your `PATH`, and falls back to `python -m yt_dlp`. You only need `YTDLP_PATH` / `FFMPEG_PATH` if your binaries live somewhere unusual, and a path that doesn't exist on the current OS is ignored with a warning rather than breaking playback.
 
 ```bash
 # Clone the repo
@@ -92,7 +95,7 @@ cd retroarr
 cd server
 cp .env.example .env        # Edit with your settings
 npm install
-npm start                    # Starts on port 8888 — the boot log shows which binaries were found
+npm start                    # Starts on port 8888, the boot log shows which binaries were found
 
 # Install and start the client (separate terminal)
 cd client
@@ -123,21 +126,22 @@ npm start                    # Serves both API and client on port 8888
 | `ADVERTISE_IP` | *auto* | LAN IP announced to media servers (set in Docker bridge mode) |
 | `YTDLP_PATH` | *auto* | Path to yt-dlp (or `python -m yt_dlp` is used). Ignored if it doesn't exist on this OS |
 | `FFMPEG_PATH` / `FFPROBE_PATH` | *auto* | Path to FFmpeg / FFprobe |
-| `YTDLP_COOKIES` | — | Netscape `cookies.txt` for YouTube. Fixes *"Sign in to confirm you're not a bot"* and age-restricted videos |
-| `YTDLP_EXTRA_ARGS` | — | Extra arguments appended to every yt-dlp call |
+| `YTDLP_COOKIES` | |  Netscape `cookies.txt` for YouTube. Fixes *"Sign in to confirm you're not a bot"* and age-restricted videos |
+| `YTDLP_EXTRA_ARGS` | |  Extra arguments appended to every yt-dlp call |
 | `YTDLP_JS_RUNTIME` | `auto` | JS runtime for YouTube challenge solving: `auto` (Node ≥ 22), `deno`, `node`, `none` |
 | `YTDLP_AUTO_UPDATE` | `true` | *(Docker)* run `yt-dlp -U` at container start |
 | `YTDLP_PLAYLIST_LIMIT` | `1000` | Max videos per playlist/channel source during a plugin sync |
 | `PLUGINS_DIR` | `./plugins` | Where dashboard-installed plugins are stored (Docker: on the db volume) |
 | `ENABLE_HDHR_DISCOVERY` / `ENABLE_SSDP` | `true` | Turn off a discovery responder |
-| `ADMIN_TOKEN` | — | Admin key for anything that changes the server (settings, channels, plugins, sync, reports, `/api/debug`). Unset = allowed from your local network only. **Set this if the dashboard is reachable from the internet**; enter it in the dashboard under Settings → Access. `PLUGIN_ADMIN_KEY` is accepted as an alias |
-| `TRUST_PROXY` | — | Set (e.g. `1`) when RetroArr sits behind a reverse proxy, so the real client IP is used. Without it, proxied requests can't make changes unless `ADMIN_TOKEN` is used |
+| `HOUSE_RULE_MIN_MINUTES` | | Per-category minimum video length in minutes. Everything else defaults to 15. The compose file ships `Cartoons=6,Kids=6,Talk TV=5` |
+| `ADMIN_TOKEN` | |  Admin key for anything that changes the server (settings, channels, plugins, sync, reports, `/api/debug`). Unset = allowed from your local network only. **Set this if the dashboard is reachable from the internet**; enter it in the dashboard under Settings → Access. `PLUGIN_ADMIN_KEY` is accepted as an alias |
+| `TRUST_PROXY` | |  Set (e.g. `1`) when RetroArr sits behind a reverse proxy, so the real client IP is used. Without it, proxied requests can't make changes unless `ADMIN_TOKEN` is used |
 
 ---
 
 ## Connecting Your Media Server
 
-RetroArr emulates an HDHomeRun network tuner and answers the real HDHomeRun discovery protocol (UDP 65001) as well as SSDP, so Plex, Jellyfin and Emby find it on the local network the same way they find real Silicondust hardware — provided the container runs with host networking.
+RetroArr emulates an HDHomeRun network tuner and answers the real HDHomeRun discovery protocol (UDP 65001) as well as SSDP, so Plex, Jellyfin and Emby find it on the local network the same way they find real Silicondust hardware, provided the container runs with host networking.
 
 ### Plex
 
@@ -147,7 +151,7 @@ RetroArr emulates an HDHomeRun network tuner and answers the real HDHomeRun disc
    ```
    http://<your-ip>:8888/epg.xml
    ```
-4. Channel scan will find all 91+ channels
+4. Channel scan will pick up every channel, grid, themed and live
 
 If Plex doesn't auto-detect (Windows/macOS without host networking), manually enter the device URL: `http://<your-ip>:8888`
 
@@ -193,15 +197,15 @@ Open `http://<your-ip>:8888/tv` in a browser for the built-in CRT TV viewer with
 | `/api/status` | Server health check |
 | `/api/debug/binaries` | Which yt-dlp / FFmpeg the server found and whether they work |
 | `/api/debug/stream/<channel-id>` | Everything a channel needs to tune, and what's missing |
-| `/api/debug/resolve/<youtube-id>` | Run yt-dlp for one video — the quickest way to see if YouTube is blocking you |
+| `/api/debug/resolve/<youtube-id>` | Run yt-dlp for one video. Quickest way to see if YouTube is blocking you |
 
 ---
 
 ## Troubleshooting
 
-**Channels tune in the browser but fail in Plex / Jellyfin / TiviMate.** The browser player uses YouTube's embed; the media server path goes through yt-dlp → FFmpeg → MPEG-TS. Open `http://<your-ip>:8888/api/debug/binaries` — both `ffmpeg.ok` and `ytdlp.ok` must be `true`. The boot log prints the same information.
+**Channels tune in the browser but fail in Plex / Jellyfin / TiviMate.** The browser player uses YouTube's embed (or a plain video tag for Internet Archive episodes); the media server path goes through yt-dlp → FFmpeg → MPEG-TS. Open `http://<your-ip>:8888/api/debug/binaries`, both `ffmpeg.ok` and `ytdlp.ok` must be `true`. The boot log prints the same information.
 
-**`Failed to spawn yt-dlp: spawn C:/... ENOENT` on Linux.** A Windows path leaked into an old image via a developer `.env`. Update to the current image — the server now ignores a path that doesn't exist on the running OS and auto-detects instead.
+**`Failed to spawn yt-dlp: spawn C:/... ENOENT` on Linux.** A Windows path leaked into an old image via a developer `.env`. Update to the current image. The server now ignores a path that doesn't exist on the running OS and auto-detects instead.
 
 **`Sign in to confirm you're not a bot` / videos resolve but nothing plays.** YouTube rate-limits datacenter and some NAS IPs. Export your browser's YouTube cookies to a `cookies.txt` (e.g. the *Get cookies.txt LOCALLY* extension), mount it into the container and set `YTDLP_COOKIES=/app/server/db/cookies.txt`.
 
@@ -215,7 +219,7 @@ Open `http://<your-ip>:8888/tv` in a browser for the built-in CRT TV viewer with
 
 ## Live Channels
 
-RetroArr can carry 24/7 YouTube live streams as channels (numbers 200+). They come from the RetroArr API (`/live`, also embedded in `/config`) and appear automatically after a sync — in the dashboard, TV mode, the M3U, the guide (hourly "LIVE" blocks) and Plex/Jellyfin. The stream is relayed with FFmpeg stream-copy (near-zero CPU) and transcoded only if a player can't take the copy. When a stream ends, the next sync (or the next tune-in) looks up the channel's current stream and swaps the ID.
+RetroArr can carry 24/7 YouTube live streams as channels (numbers 200+). They come from the RetroArr API (`/live`, also embedded in `/config`) and appear automatically after a sync: in the dashboard, TV mode, the M3U, the guide (hourly "LIVE" blocks) and Plex/Jellyfin. The stream is relayed with FFmpeg stream-copy (near-zero CPU) and transcoded only if a player can't take the copy. When a stream ends, the next sync (or the next tune-in) looks up the channel's current stream and swaps the ID.
 
 To add your own locally, drop a JSON file in `plugins/`:
 
@@ -239,7 +243,7 @@ Want to share your own channel with the community? Submit a pull request to the 
 
 #### 1. YAML Playlist File
 
-Create `plugin-repo/your-channel.yaml` with one playlist, channel or video per line. Anything yt-dlp can list works — playlists, whole channels (`@handle`, uploads are used), or single videos:
+Create `plugin-repo/your-channel.yaml` with one playlist, channel or video per line. Anything yt-dlp can list works: playlists, whole channels (`@handle`, uploads are used), or single videos:
 
 ```
 1984 - Show Name - https://www.youtube.com/playlist?list=PLxxxxxxxxx
@@ -286,9 +290,9 @@ Add your plugin entry to `plugin-repo/manifest.json`:
 #### Submission Guidelines
 
 - Only link to publicly available YouTube content
-- Use playlists when possible,  they're easier to maintain
+- Use playlists when possible, they're easier to maintain
 - Test your YAML format matches the existing plugin files
-- Channel numbers 100–599 are reserved for the grid,  use 600+
+- Channel numbers 100 to 599 are reserved for the grid, use 600+
 - Keep descriptions concise
 - One channel per pull request
 
